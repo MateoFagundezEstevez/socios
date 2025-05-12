@@ -8,10 +8,9 @@ from datetime import datetime
 def cargar_datos():
     df = pd.read_csv("Cuentas (1).csv")
     df.columns = df.columns.str.strip().str.replace('"', '')
-    # Buscar la columna de fecha de creación (utilizamos 'Fecha Creación Empresa')
-    fecha_col = next((col for col in df.columns if "creación" in col.lower() or "fecha creación" in col.lower()), None)
-    if fecha_col:
-        df["Antiguedad"] = datetime.today().year - pd.to_datetime(df[fecha_col], errors='coerce').dt.year
+    # Verificamos si la columna "Fecha Creación Empresa" existe y la procesamos
+    if 'Fecha Creación Empresa' in df.columns:
+        df["Antiguedad"] = datetime.today().year - pd.to_datetime(df['Fecha Creación Empresa'], errors='coerce').dt.year
     else:
         df["Antiguedad"] = None
     return df
@@ -19,7 +18,7 @@ def cargar_datos():
 df = cargar_datos()
 
 # Verificación de las columnas disponibles
-st.write(df.columns)  # Verifica las columnas del DataFrame
+st.write("Columnas del DataFrame:", df.columns)
 
 # Filtros
 st.sidebar.header("Filtros")
@@ -72,23 +71,24 @@ st.dataframe(rubro_counts.head(10))
 st.header("Inteligencia Institucional")
 
 # Usar la columna 'Fecha Creación Empresa'
-creados_por_ano = df['Fecha Creación Empresa'].dropna()
-if not creados_por_ano.empty:
-    creados_por_ano = pd.to_datetime(creados_por_ano, errors='coerce').dt.year.value_counts().sort_index()
-    st.subheader("Altas por Año")
-    st.bar_chart(creados_por_ano)
+if 'Fecha Creación Empresa' in df.columns:
+    creados_por_ano = df['Fecha Creación Empresa'].dropna()
+    if not creados_por_ano.empty:
+        creados_por_ano = pd.to_datetime(creados_por_ano, errors='coerce').dt.year.value_counts().sort_index()
+        st.subheader("Altas por Año")
+        st.bar_chart(creados_por_ano)
 
-    # Recomendación de Servicios desde la Cámara basada en Altas por Año
-    años_creacion = creados_por_ano.index
-    for año in años_creacion:
-        if año == datetime.today().year:
-            st.markdown(f"**Recomendación de Servicios (Año {año})**: ")
-            st.markdown("- Realizar una campaña de bienvenida y orientación para los socios más recientes.")
-            st.markdown("- Ofrecer sesiones de integración a nuevos socios para acelerar su participación.")
-        elif año < datetime.today().year - 1:
-            st.markdown(f"**Recomendación de Servicios (Año {año})**: ")
-            st.markdown("- Fomentar la participación en eventos de networking para reactivar el interés de socios más antiguos.")
-            st.markdown("- Evaluar la satisfacción con los servicios prestados a socios que llevan más tiempo.")
+        # Recomendación de Servicios desde la Cámara basada en Altas por Año
+        años_creacion = creados_por_ano.index
+        for año in años_creacion:
+            if año == datetime.today().year:
+                st.markdown(f"**Recomendación de Servicios (Año {año})**: ")
+                st.markdown("- Realizar una campaña de bienvenida y orientación para los socios más recientes.")
+                st.markdown("- Ofrecer sesiones de integración a nuevos socios para acelerar su participación.")
+            elif año < datetime.today().year - 1:
+                st.markdown(f"**Recomendación de Servicios (Año {año})**: ")
+                st.markdown("- Fomentar la participación en eventos de networking para reactivar el interés de socios más antiguos.")
+                st.markdown("- Evaluar la satisfacción con los servicios prestados a socios que llevan más tiempo.")
 
 # Resumen por Rubro y Tipo
 st.subheader("Resumen por Rubro y Tipo")
