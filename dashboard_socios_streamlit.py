@@ -17,9 +17,6 @@ def cargar_datos():
 
 df = cargar_datos()
 
-# Verificación de las columnas disponibles
-st.write("Columnas del DataFrame:", df.columns)
-
 # Filtros
 st.sidebar.header("Filtros")
 estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
@@ -67,8 +64,8 @@ rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
 
-# Inteligencia Institucional
-st.header("Inteligencia Institucional")
+# Inteligencia Comercial
+st.header("Inteligencia Comercial")
 
 # Usar la columna 'Fecha Creación Empresa'
 if 'Fecha Creación Empresa' in df.columns:
