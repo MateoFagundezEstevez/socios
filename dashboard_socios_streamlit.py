@@ -90,13 +90,13 @@ st.subheader("Antigüedad de los Socios")
 if 'Antiguedad Categoria' in filtro.columns:
     st.plotly_chart(px.histogram(filtro, x="Antiguedad Categoria", height=400))
 
-# Detalle de socios filtrados
-st.subheader("Detalle de Socios Filtrados")
-if not filtro.empty:
-    columnas_mostrar = [col for col in filtro.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
-    st.dataframe(filtro[columnas_mostrar].drop_duplicates().reset_index(drop=True))
-else:
-    st.write("No hay socios que coincidan con los filtros seleccionados.")
+# Detalle de socios filtrados con opción desplegable
+with st.expander("Ver Detalle de Socios Filtrados"):
+    if not filtro.empty:
+        columnas_mostrar = [col for col in filtro.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
+        st.dataframe(filtro[columnas_mostrar].drop_duplicates().reset_index(drop=True))
+    else:
+        st.write("No hay socios que coincidan con los filtros seleccionados.")
 
 # Mostrar análisis de inactivos solo si el usuario lo solicita
 mostrar_inactivos = st.sidebar.checkbox("Mostrar análisis de socios inactivos")
