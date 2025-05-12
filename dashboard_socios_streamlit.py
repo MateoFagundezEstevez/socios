@@ -30,19 +30,22 @@ df = cargar_datos()
 
 # Filtros en la barra lateral
 st.sidebar.header("Filtros")
-estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
 
-st.sidebar.markdown("""
-**Estados de los Socios**:
-- **VIG**: Socio activo y vigente.
-- **SOLIC-BAJA**: En proceso de baja o ya inactivo.
-- **PROSP**: Prospecto, aún no es socio formal.
-- **HON**: Socio honorario.
-- **LIC**: Socio con licencia temporal (por ejemplo, suspendido).
-- **CAMRUT**: Socio con cambio de RUT (posible reingreso o reorganización).
-- **EMSUS**: Enviada solicitud de suspensión.
-- **CANJ**: Socio en canje de servicios (trueque o acuerdo no monetario).
-""")
+# Expansor para los estados de los socios
+with st.sidebar.expander("Ver Estados de los Socios"):
+    st.markdown("""
+    **Estados de los Socios**:
+    - **VIG**: Socio activo y vigente.
+    - **SOLIC-BAJA**: En proceso de baja o ya inactivo.
+    - **PROSP**: Prospecto, aún no es socio formal.
+    - **HON**: Socio honorario.
+    - **LIC**: Socio con licencia temporal (por ejemplo, suspendido).
+    - **CAMRUT**: Socio con cambio de RUT (posible reingreso o reorganización).
+    - **EMSUS**: Enviada solicitud de suspensión.
+    - **CANJ**: Socio en canje de servicios (trueque o acuerdo no monetario).
+    """)
+
+estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
 
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
 tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo de socio"].dropna().unique())
@@ -114,25 +117,4 @@ rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
 
 # Mostrar análisis de altas por año solo si el usuario lo solicita
-mostrar_altas = st.sidebar.checkbox("Mostrar altas por año")
-
-if mostrar_altas:
-    st.header("Inteligencia Comercial")
-    if 'Fecha Creación Empresa' in df.columns and df['Fecha Creación Empresa'].dropna().empty and 'Fecha de Creación' in df.columns:
-        creados_por_ano = pd.to_datetime(df['Fecha de Creación'], errors='coerce').dt.year.value_counts().sort_index()
-    else:
-        creados_por_ano = pd.to_datetime(df['Fecha Creación Empresa'], errors='coerce').dt.year.value_counts().sort_index()
-
-    if not creados_por_ano.empty:
-        st.subheader("Altas por Año")
-        st.bar_chart(creados_por_ano)
-
-        for año in creados_por_ano.index:
-            if año == datetime.today().year:
-                st.markdown(f"**Recomendación de Servicios ({año})**:")
-                st.markdown("- Campaña de bienvenida y orientación para nuevos socios.")
-                st.markdown("- Sesiones de integración para acelerar su participación.")
-            elif año < datetime.today().year - 1:
-                st.markdown(f"**Recomendación de Servicios ({año})**:")
-                st.markdown("- Actividades de networking para reactivar el interés.")
-                st.markdown("- Evaluar satisfacción con los servicios actuales.")
+mostrar_altas = st.sidebar.checkbox("Mostrar altas por_
