@@ -114,23 +114,6 @@ st.header("Cantidad de socios y rubros según filtros seleccionados")
 rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
-
-# Detalle por Rubro y Región/Localidad Seleccionado
-st.subheader("Detalle por Rubro y Región/Localidad Seleccionados")
-if rubros and regiones:
-    cluster_detalle = df[df["Rubro"].isin(rubros) & df["Región / Localidad"].isin(regiones)]
-    columnas_detalle = [col for col in cluster_detalle.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
-    st.dataframe(cluster_detalle[columnas_detalle].drop_duplicates().reset_index(drop=True))
-elif rubros:
-    cluster_detalle = df[df["Rubro"].isin(rubros)]
-    columnas_detalle = [col for col in cluster_detalle.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
-    st.dataframe(cluster_detalle[columnas_detalle].drop_duplicates().reset_index(drop=True))
-elif regiones:
-    cluster_detalle = df[df["Región / Localidad"].isin(regiones)]
-    columnas_detalle = [col for col in cluster_detalle.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
-    st.dataframe(cluster_detalle[columnas_detalle].drop_duplicates().reset_index(drop=True))
-else:
-    st.write("Por favor, seleccione al menos un rubro o una región/localidad para mostrar detalles.")
     
 # Mostrar análisis de altas por año solo si el usuario lo solicita
 mostrar_altas = st.sidebar.checkbox("Mostrar altas por año")
