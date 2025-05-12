@@ -21,7 +21,7 @@ def cargar_datos():
 
     # Calcular antigüedad en años y meses
     df['Antiguedad en Meses'] = (datetime.today().year - df['Fecha Creación Empresa'].dt.year) * 12 + (datetime.today().month - df['Fecha Creación Empresa'].dt.month)
-    df['Antiguedad Detallada'] = df['Antiguedad en Meses'] // 12.astype(str) + ' años y ' + (df['Antiguedad en Meses'] % 12).astype(str) + ' meses'
+df['Antiguedad Detallada'] = (df['Antiguedad en Meses'] // 12).astype(str) + ' años y ' + (df['Antiguedad en Meses'] % 12).astype(str) + ' meses'
 
     # Clasificación de la antigüedad en categorías
     bins = [0, 1, 5, float('inf')]
