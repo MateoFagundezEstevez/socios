@@ -127,8 +127,3 @@ if mostrar_altas:
                 st.markdown(f"**Recomendación de Servicios ({año})**:")
                 st.markdown("- Actividades de networking para reactivar el interés.")
                 st.markdown("- Evaluar satisfacción con los servicios actuales.")
-
-# Resumen por rubro y tipo
-st.subheader("Totales del mapeo de socios")
-resumen = df.groupby(["Rubro", "Tipo de socio"]).size().reset_index(name="Cantidad")
-st.dataframe(resumen.sort_values("Cantidad", ascending=False))
