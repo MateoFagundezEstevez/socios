@@ -109,9 +109,3 @@ cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
 cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_index(name="Cantidad")
 cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
 st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Región / Localidad"))
-
-st.subheader("Detalle por Rubro y Región / Localidad Seleccionado")
-if rubros and regiones:
-    cluster_detalle = df[df["Rubro"].isin(rubros) & df["Región / Localidad"].isin(regiones)]
-    columnas_detalle = [col for col in cluster_detalle.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
-    st.dataframe(cluster_detalle[columnas_detalle].drop_duplicates().reset_index(drop=True))
