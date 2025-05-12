@@ -8,9 +8,15 @@ from datetime import datetime
 @st.cache_data
 def cargar_datos():
     df = pd.read_csv("Cuentas (1).csv")
-    df.columns = df.columns.str.strip().str.replace('"', '')
-    df["Fecha de Creacion"] = pd.to_datetime(df["Fecha de Creacion"], errors='coerce')
-    df["Antiguedad"] = datetime.today().year - df["Fecha de Creacion"].dt.year
+    df.columns = df.columns.str.strip().str.replace('\"', '')
+
+    # Buscar la columna de fecha que contenga "creacion"
+    fecha_col = next((col for col in df.columns if "creacion" in col.lower()), None)
+    if fecha_col:
+        df["Antiguedad"] = datetime.today().year - pd.to_datetime(df[fecha_col], errors='coerce').dt.year
+    else:
+        df["Antiguedad"] = None
+
     return df
 
 df = cargar_datos()
