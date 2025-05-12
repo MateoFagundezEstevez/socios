@@ -66,7 +66,7 @@ inactivos = df[df["Estado"] == "SOLIC-BAJA"]
 st.write(f"Total de socios inactivos: {len(inactivos)}")
 st.plotly_chart(px.histogram(inactivos, x="Rubro", color="Tipo de socio", title="Rubros más afectados"))
 
-# Difusión de Servicios y Beneficios
+# Totales
 st.header("Difusión de Servicios y Beneficios")
 rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
