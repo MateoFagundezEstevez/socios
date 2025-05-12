@@ -8,15 +8,12 @@ from datetime import datetime
 @st.cache_data
 def cargar_datos():
     df = pd.read_csv("Cuentas (1).csv")
-    df.columns = df.columns.str.strip().str.replace('\"', '')
-
-    # Buscar la columna de fecha que contenga "creacion"
+    df.columns = df.columns.str.strip().str.replace('"', '')
     fecha_col = next((col for col in df.columns if "creacion" in col.lower()), None)
     if fecha_col:
         df["Antiguedad"] = datetime.today().year - pd.to_datetime(df[fecha_col], errors='coerce').dt.year
     else:
         df["Antiguedad"] = None
-
     return df
 
 df = cargar_datos()
@@ -64,16 +61,24 @@ rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
 
-# Comercializacion y Eventos
-st.header("Comercializaci\u00f3n y Eventos")
-st.markdown("Se sugiere priorizar eventos en departamentos con alta concentraci\u00f3n de socios, y adaptar los temas seg\u00fan el rubro.")
-st.plotly_chart(px.sunburst(filtro, path=['Departamento (Env\u00edo)', 'Rubro'], values=None))
+# Mapeo institucional y oportunidades
+st.header("Mapeo de Socios y Cooperaci\u00f3n Institucional")
+st.subheader("Mapa de Distribuci\u00f3n por Departamento")
+mapa_data = df["Departamento (Env\u00edo)"].value_counts().reset_index()
+mapa_data.columns = ["Departamento", "Cantidad"]
+st.plotly_chart(px.choropleth(mapa_data, locationmode="country names", locations="Departamento", color="Cantidad", title="Distribuci\u00f3n de socios por departamento (simulado)", color_continuous_scale="Blues"))
+
+st.subheader("Identificaci\u00f3n de Oportunidades de Cooperaci\u00f3n")
+coop_df = df.groupby(["Departamento (Env\u00edo)", "Rubro"]).size().reset_index(name="Cantidad")
+st.plotly_chart(px.treemap(coop_df, path=['Departamento (Env\u00edo)', 'Rubro'], values='Cantidad', title="Mapa de potenciales cl\u00fasters y cooperaciones"))
 
 # Inteligencia Institucional
 st.header("Inteligencia Institucional")
-creados_por_ano = df['Fecha de Creacion'].dt.year.value_counts().sort_index()
-st.subheader("Altas por A\u00f1o")
-st.bar_chart(creados_por_ano)
+creados_por_ano = df['Fecha de Creacion'].dropna()
+if not creados_por_ano.empty:
+    creados_por_ano = pd.to_datetime(creados_por_ano, errors='coerce').dt.year.value_counts().sort_index()
+    st.subheader("Altas por A\u00f1o")
+    st.bar_chart(creados_por_ano)
 
 st.subheader("Resumen por Departamento")
 depa_data = df["Departamento (Env\u00edo)"].value_counts().reset_index()
@@ -86,6 +91,6 @@ st.markdown("""
 - **Fidelizaci\u00f3n**: Crear beneficios segmentados por rubro, como capacitaciones o convenios exclusivos.
 - **Reactivaci\u00f3n**: Contactar sectores con altas bajas como prioridad, usando encuestas para entender causas.
 - **Difusi\u00f3n**: Email marketing personalizado seg\u00fan antig\u00fcedad y tipo de socio.
-- **Eventos**: Ofrecer eventos regionales en departamentos con alto volumen y por subgrupo de actividad.
+- **Cooperaci\u00f3n**: Identificar regiones y rubros con alta concentraci\u00f3n para alianzas estrat\u00e9gicas regionales.
 - **Captaci\u00f3n**: Fortalecer presencia institucional en zonas con baja concentraci\u00f3n de socios.
 """)
