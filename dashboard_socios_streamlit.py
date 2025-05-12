@@ -117,4 +117,4 @@ rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
 
 # Mostrar análisis de altas por año solo si el usuario lo solicita
-mostrar_altas = st.sidebar.checkbox("Mostrar altas por_
+mostrar_altas = st.sidebar.checkbox("Mostrar altas por año")
