@@ -74,16 +74,6 @@ st.subheader("Resumen por Rubro y Tipo")
 resumen = df.groupby(["Rubro", "Tipo de socio"]).size().reset_index(name="Cantidad")
 st.dataframe(resumen.sort_values("Cantidad", ascending=False))
 
-# Identificación de Oportunidades de Cooperación
-st.header("Oportunidades de Cooperación Institucional")
-st.subheader("Clústeres por Rubro")
-
-if rubros:
-    # Filtrar por rubro seleccionado
-    cluster_detalle = df[df["Rubro"].isin(rubros)]
-    columnas_detalle = ["Nombre", "Rubro", "Mail", "Email", "Tel", "Contacto"]
-    st.dataframe(cluster_detalle[columnas_detalle].drop_duplicates().reset_index(drop=True))
-
 # Recomendaciones
 st.header("Recomendaciones Estratégicas")
 st.markdown(""" 
