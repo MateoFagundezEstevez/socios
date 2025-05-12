@@ -104,26 +104,29 @@ rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
 
-# Inteligencia Comercial
-st.header("Inteligencia Comercial")
-if 'Fecha Creación Empresa' in df.columns and df['Fecha Creación Empresa'].dropna().empty and 'Fecha de Creación' in df.columns:
-    creados_por_ano = pd.to_datetime(df['Fecha de Creación'], errors='coerce').dt.year.value_counts().sort_index()
-else:
-    creados_por_ano = pd.to_datetime(df['Fecha Creación Empresa'], errors='coerce').dt.year.value_counts().sort_index()
+# Mostrar análisis de altas por año solo si el usuario lo solicita
+mostrar_altas = st.sidebar.checkbox("Mostrar altas por año")
 
-if not creados_por_ano.empty:
-    st.subheader("Altas por Año")
-    st.bar_chart(creados_por_ano)
+if mostrar_altas:
+    st.header("Inteligencia Comercial")
+    if 'Fecha Creación Empresa' in df.columns and df['Fecha Creación Empresa'].dropna().empty and 'Fecha de Creación' in df.columns:
+        creados_por_ano = pd.to_datetime(df['Fecha de Creación'], errors='coerce').dt.year.value_counts().sort_index()
+    else:
+        creados_por_ano = pd.to_datetime(df['Fecha Creación Empresa'], errors='coerce').dt.year.value_counts().sort_index()
 
-    for año in creados_por_ano.index:
-        if año == datetime.today().year:
-            st.markdown(f"**Recomendación de Servicios ({año})**:")
-            st.markdown("- Campaña de bienvenida y orientación para nuevos socios.")
-            st.markdown("- Sesiones de integración para acelerar su participación.")
-        elif año < datetime.today().year - 1:
-            st.markdown(f"**Recomendación de Servicios ({año})**:")
-            st.markdown("- Actividades de networking para reactivar el interés.")
-            st.markdown("- Evaluar satisfacción con los servicios actuales.")
+    if not creados_por_ano.empty:
+        st.subheader("Altas por Año")
+        st.bar_chart(creados_por_ano)
+
+        for año in creados_por_ano.index:
+            if año == datetime.today().year:
+                st.markdown(f"**Recomendación de Servicios ({año})**:")
+                st.markdown("- Campaña de bienvenida y orientación para nuevos socios.")
+                st.markdown("- Sesiones de integración para acelerar su participación.")
+            elif año < datetime.today().year - 1:
+                st.markdown(f"**Recomendación de Servicios ({año})**:")
+                st.markdown("- Actividades de networking para reactivar el interés.")
+                st.markdown("- Evaluar satisfacción con los servicios actuales.")
 
 # Resumen por rubro y tipo
 st.subheader("Totales del mapeo de socios")
