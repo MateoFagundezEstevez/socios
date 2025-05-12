@@ -8,28 +8,34 @@ from datetime import datetime
 def cargar_datos():
     df = pd.read_csv("Cuentas (1).csv")
     df.columns = df.columns.str.strip().str.replace('"', '')
-    # Verificamos si la columna "Fecha Creación Empresa" existe y la procesamos
+
+    # Procesar fechas y calcular antigüedad
     if 'Fecha Creación Empresa' in df.columns:
-        df["Antiguedad"] = datetime.today().year - pd.to_datetime(df['Fecha Creación Empresa'], errors='coerce').dt.year
+        df['Fecha Creación Empresa'] = pd.to_datetime(df['Fecha Creación Empresa'], errors='coerce')
+    
+    if df['Fecha Creación Empresa'].dropna().empty and 'Fecha de Creación' in df.columns:
+        df['Fecha de Creación'] = pd.to_datetime(df['Fecha de Creación'], errors='coerce')
+        df['Antiguedad'] = datetime.today().year - df['Fecha de Creación'].dt.year
     else:
-        df["Antiguedad"] = None
+        df['Antiguedad'] = datetime.today().year - df['Fecha Creación Empresa'].dt.year
+
     return df
 
 df = cargar_datos()
 
-# Filtros
+# Filtros en la barra lateral
 st.sidebar.header("Filtros")
 estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
 tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo de socio"].dropna().unique())
 
-# Filtro por Región / Localidad (nuevo filtro)
+# Filtro por Región / Localidad
 if 'Región / Localidad' in df.columns:
     regiones = st.sidebar.multiselect("Región / Localidad", df["Región / Localidad"].dropna().unique())
 else:
     regiones = []
 
-# Filtrado de datos
+# Aplicar filtros
 filtro = df.copy()
 if estados:
     filtro = filtro[filtro["Estado"].isin(estados)]
@@ -40,7 +46,7 @@ if tipos:
 if regiones:
     filtro = filtro[filtro["Región / Localidad"].isin(regiones)]
 
-# Título de la página
+# Título
 st.title("Análisis Integral de Socios - Cámara de Comercio")
 st.markdown("Este dashboard permite visualizar información clave para decisiones sobre fidelización, reactivación y estrategias institucionales.")
 
@@ -50,7 +56,8 @@ st.subheader("Distribución por Rubro")
 st.plotly_chart(px.histogram(filtro, x="Rubro", color="Tipo de socio", barmode="group", height=400))
 
 st.subheader("Antigüedad de los Socios")
-st.plotly_chart(px.histogram(filtro, x="Antiguedad", nbins=20))
+if 'Antiguedad' in filtro.columns:
+    st.plotly_chart(px.histogram(filtro, x="Antiguedad", nbins=20))
 
 # Detalle de socios filtrados
 st.subheader("Detalle de Socios Filtrados")
@@ -74,37 +81,33 @@ st.dataframe(rubro_counts.head(10))
 
 # Inteligencia Comercial
 st.header("Inteligencia Comercial")
+if 'Fecha Creación Empresa' in df.columns and df['Fecha Creación Empresa'].dropna().empty and 'Fecha de Creación' in df.columns:
+    creados_por_ano = pd.to_datetime(df['Fecha de Creación'], errors='coerce').dt.year.value_counts().sort_index()
+else:
+    creados_por_ano = pd.to_datetime(df['Fecha Creación Empresa'], errors='coerce').dt.year.value_counts().sort_index()
 
-# Usar la columna 'Fecha Creación Empresa'
-if 'Fecha Creación Empresa' in df.columns:
-    creados_por_ano = df['Fecha Creación Empresa'].dropna()
-    if not creados_por_ano.empty:
-        creados_por_ano = pd.to_datetime(creados_por_ano, errors='coerce').dt.year.value_counts().sort_index()
-        st.subheader("Altas por Año")
-        st.bar_chart(creados_por_ano)
+if not creados_por_ano.empty:
+    st.subheader("Altas por Año")
+    st.bar_chart(creados_por_ano)
 
-        # Recomendación de Servicios desde la Cámara basada en Altas por Año
-        años_creacion = creados_por_ano.index
-        for año in años_creacion:
-            if año == datetime.today().year:
-                st.markdown(f"**Recomendación de Servicios (Año {año})**: ")
-                st.markdown("- Realizar una campaña de bienvenida y orientación para los socios más recientes.")
-                st.markdown("- Ofrecer sesiones de integración a nuevos socios para acelerar su participación.")
-            elif año < datetime.today().year - 1:
-                st.markdown(f"**Recomendación de Servicios (Año {año})**: ")
-                st.markdown("- Fomentar la participación en eventos de networking para reactivar el interés de socios más antiguos.")
-                st.markdown("- Evaluar la satisfacción con los servicios prestados a socios que llevan más tiempo.")
+    for año in creados_por_ano.index:
+        if año == datetime.today().year:
+            st.markdown(f"**Recomendación de Servicios ({año})**:")
+            st.markdown("- Campaña de bienvenida y orientación para nuevos socios.")
+            st.markdown("- Sesiones de integración para acelerar su participación.")
+        elif año < datetime.today().year - 1:
+            st.markdown(f"**Recomendación de Servicios ({año})**:")
+            st.markdown("- Actividades de networking para reactivar el interés.")
+            st.markdown("- Evaluar satisfacción con los servicios actuales.")
 
-# Resumen por Rubro y Tipo
+# Resumen por rubro y tipo
 st.subheader("Resumen por Rubro y Tipo")
 resumen = df.groupby(["Rubro", "Tipo de socio"]).size().reset_index(name="Cantidad")
 st.dataframe(resumen.sort_values("Cantidad", ascending=False))
 
-# Identificación de Oportunidades de Cooperación Institucional
+# Cooperación institucional: Clústeres
 st.header("Oportunidades de Cooperación Institucional")
 st.subheader("Clústeres por Rubro y Región / Localidad")
-
-# Clústeres por rubro y región/localidad
 cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
 cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_index(name="Cantidad")
 cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
