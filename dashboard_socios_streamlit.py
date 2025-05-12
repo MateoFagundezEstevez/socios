@@ -64,15 +64,46 @@ st.dataframe(rubro_counts.head(10))
 
 # Inteligencia Institucional
 st.header("Inteligencia Institucional")
+
+# Análisis de Altas por Año
 creados_por_ano = df['Fecha de Creacion'].dropna()
 if not creados_por_ano.empty:
     creados_por_ano = pd.to_datetime(creados_por_ano, errors='coerce').dt.year.value_counts().sort_index()
     st.subheader("Altas por Año")
     st.bar_chart(creados_por_ano)
 
+    # Recomendación de Servicios desde la Cámara basada en Altas por Año
+    años_creacion = creados_por_ano.index
+    for año in años_creacion:
+        if año == datetime.today().year:
+            st.markdown(f"**Recomendación de Servicios (Año {año})**: ")
+            st.markdown("- Realizar una campaña de bienvenida y orientación para los socios más recientes.")
+            st.markdown("- Ofrecer sesiones de integración a nuevos socios para acelerar su participación.")
+        elif año < datetime.today().year - 1:
+            st.markdown(f"**Recomendación de Servicios (Año {año})**: ")
+            st.markdown("- Fomentar la participación en eventos de networking para reactivar el interés de socios más antiguos.")
+            st.markdown("- Evaluar la satisfacción con los servicios prestados a socios que llevan más tiempo.")
+
+# Resumen por Rubro y Tipo
 st.subheader("Resumen por Rubro y Tipo")
 resumen = df.groupby(["Rubro", "Tipo de socio"]).size().reset_index(name="Cantidad")
 st.dataframe(resumen.sort_values("Cantidad", ascending=False))
+
+# Recomendaciones personalizadas basadas en rubro y antigüedad
+if rubros:
+    for rubro in rubros:
+        st.subheader(f"Recomendaciones para el Rubro: {rubro}")
+        rubro_data = df[df["Rubro"] == rubro]
+        
+        # Sugerencias según antigüedad
+        socios_antiguos = rubro_data[rubro_data["Antiguedad"] > 5]
+        socios_nuevos = rubro_data[rubro_data["Antiguedad"] <= 5]
+        
+        if not socios_nuevos.empty:
+            st.markdown("- Para los socios nuevos, crear paquetes de introducción y cursos básicos sobre los servicios de la Cámara.")
+        
+        if not socios_antiguos.empty:
+            st.markdown("- Para los socios más antiguos, ofrecer renovaciones de servicios o incluso descuentos especiales para la renovación de membresías.")
 
 # Recomendaciones
 st.header("Recomendaciones Estratégicas")
@@ -83,3 +114,4 @@ st.markdown("""
 - **Cooperación**: Identificar rubros con alta concentración para alianzas estratégicas sectoriales.
 - **Captación**: Fortalecer presencia institucional en sectores con baja concentración de socios.
 """)
+
