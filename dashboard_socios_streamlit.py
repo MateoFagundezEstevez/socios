@@ -105,9 +105,10 @@ st.subheader("Resumen por Rubro y Tipo")
 resumen = df.groupby(["Rubro", "Tipo de socio"]).size().reset_index(name="Cantidad")
 st.dataframe(resumen.sort_values("Cantidad", ascending=False))
 
-# Cooperación institucional: Clústeres
-st.header("Oportunidades de Cooperación Institucional")
-st.subheader("Clústeres por Rubro y Región / Localidad")
-cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
-cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_index(name="Cantidad")
-cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
+# Cooperación institucional: Clústeres (eliminado)
+# st.header("Oportunidades de Cooperación Institucional")
+# st.subheader("Clústeres por Rubro y Región / Localidad")
+# cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
+# cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_index(name="Cantidad")
+# cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
+# st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Región / Localidad"))
