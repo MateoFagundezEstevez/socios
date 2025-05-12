@@ -101,6 +101,6 @@ if not creados_por_ano.empty:
             st.markdown("- Evaluar satisfacción con los servicios actuales.")
 
 # Resumen por rubro y tipo
-st.subheader("Resumen por Rubro y Tipo")
+st.subheader("Totales del mapeo de socios")
 resumen = df.groupby(["Rubro", "Tipo de socio"]).size().reset_index(name="Cantidad")
 st.dataframe(resumen.sort_values("Cantidad", ascending=False))
