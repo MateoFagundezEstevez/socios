@@ -118,14 +118,31 @@ st.dataframe(rubro_counts.head(10))
 # Mostrar análisis de altas por año solo si el usuario lo solicita
 mostrar_altas = st.sidebar.checkbox("Mostrar altas por año")
 
-# Clústeres por rubro
-cluster_df = df[~df["Rubro"].isna()].copy()
-cluster_df = cluster_df.groupby("Rubro").size().reset_index(name="Cantidad")
-cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
-st.plotly_chart(px.treemap(cluster_df, path=['Rubro'], values='Cantidad', title="Clústeres Potenciales"))
+# Clústeres por Rubro y Región/Localidad
+cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
 
-st.subheader("Detalle por Rubro Seleccionado")
-if rubros:
+# Agrupamos por Rubro y Región/Localidad y contamos la cantidad de socios
+cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_index(name="Cantidad")
+
+# Filtramos los clústeres que tienen más de 1 socio
+cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
+
+# Gráfico de treemap para visualizar los clústeres potenciales
+st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
+
+# Detalle por Rubro y Región/Localidad Seleccionado
+st.subheader("Detalle por Rubro y Región/Localidad Seleccionados")
+if rubros and regiones:
+    cluster_detalle = df[df["Rubro"].isin(rubros) & df["Región / Localidad"].isin(regiones)]
+    columnas_detalle = [col for col in cluster_detalle.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
+    st.dataframe(cluster_detalle[columnas_detalle].drop_duplicates().reset_index(drop=True))
+elif rubros:
     cluster_detalle = df[df["Rubro"].isin(rubros)]
     columnas_detalle = [col for col in cluster_detalle.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
     st.dataframe(cluster_detalle[columnas_detalle].drop_duplicates().reset_index(drop=True))
+elif regiones:
+    cluster_detalle = df[df["Región / Localidad"].isin(regiones)]
+    columnas_detalle = [col for col in cluster_detalle.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
+    st.dataframe(cluster_detalle[columnas_detalle].drop_duplicates().reset_index(drop=True))
+else:
+    st.write("Por favor, seleccione al menos un rubro o una región/localidad para mostrar detalles.")
