@@ -29,6 +29,18 @@ estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), defau
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
 tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo de socio"].dropna().unique())
 
+st.sidebar.markdown("""
+**Estados de los Socios**:
+- **VIG**: Socio activo y vigente.
+- **SOLIC-BAJA**: En proceso de baja o ya inactivo.
+- **PROSP**: Prospecto, aún no es socio formal.
+- **HON**: Socio honorario.
+- **LIC**: Socio con licencia temporal (por ejemplo, suspendido).
+- **CAMRUT**: Socio con cambio de RUT (posible reingreso o reorganización).
+- **EMSUS**: Enviada solicitud de suspensión.
+- **CANJ**: Socio en canje de servicios (trueque o acuerdo no monetario).
+""")
+
 # Filtro por Región / Localidad
 if 'Región / Localidad' in df.columns:
     regiones = st.sidebar.multiselect("Región / Localidad", df["Región / Localidad"].dropna().unique())
