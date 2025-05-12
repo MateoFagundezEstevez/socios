@@ -31,8 +31,9 @@ df = cargar_datos()
 # Filtros en la barra lateral
 st.sidebar.header("Filtros")
 
+estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
 # Expansor para los estados de los socios
-with st.sidebar.expander("Ver Estados de los Socios"):
+with st.sidebar.expander("Ver información sobre Estados de los Socios"):
     st.markdown("""
     **Estados de los Socios**:
     - **VIG**: Socio activo y vigente.
@@ -44,8 +45,6 @@ with st.sidebar.expander("Ver Estados de los Socios"):
     - **EMSUS**: Enviada solicitud de suspensión.
     - **CANJ**: Socio en canje de servicios (trueque o acuerdo no monetario).
     """)
-
-estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
 
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
 tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo de socio"].dropna().unique())
