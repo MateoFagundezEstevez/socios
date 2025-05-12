@@ -19,6 +19,10 @@ def cargar_datos():
     else:
         df['Antiguedad'] = datetime.today().year - df['Fecha Creación Empresa'].dt.year
 
+    # Calcular antigüedad en años y meses
+    df['Antiguedad en Meses'] = (datetime.today().year - df['Fecha Creación Empresa'].dt.year) * 12 + (datetime.today().month - df['Fecha Creación Empresa'].dt.month)
+    df['Antiguedad Detallada'] = df['Antiguedad en Meses'] // 12.astype(str) + ' años y ' + (df['Antiguedad en Meses'] % 12).astype(str) + ' meses'
+
     # Clasificación de la antigüedad en categorías
     bins = [0, 1, 5, float('inf')]
     labels = ['Nuevo', 'Medio', 'Veterano']
@@ -34,8 +38,7 @@ st.sidebar.header("Filtros")
 estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
 # Expansor para los estados de los socios
 with st.sidebar.expander("Ver información sobre Estados de los Socios"):
-    st.markdown("""
-    **Estados de los Socios**:
+    st.markdown(""" **Estados de los Socios**:
     - **VIG**: Socio activo y vigente.
     - **SOLIC-BAJA**: En proceso de baja o ya inactivo.
     - **PROSP**: Prospecto, aún no es socio formal.
@@ -76,8 +79,7 @@ st.markdown(f"🎉 ¡Tenemos **{socios_activos}** socios activos! 🎉")
 st.markdown("Estos socios representan el motor de nuestra comunidad, ¡y estamos aquí para ayudarlos a crecer y prosperar!")
 
 # Explicación de tipos de socios
-st.markdown("""
-**Tipos de Socios**:
+st.markdown("""**Tipos de Socios**:
 - **TS01**: Socios Activos (Empresas socias directas con todos los beneficios).
 - **TS02**: Socios Adherentes (Participan parcialmente de servicios).
 - **TS03**: Socios Institucionales (Vinculación con instituciones o entes públicos).
@@ -89,6 +91,12 @@ st.subheader("Distribución por Rubro")
 st.plotly_chart(px.histogram(filtro, x="Rubro", color="Tipo de socio", barmode="group", height=400))
 
 st.subheader("Antigüedad de los Socios")
+# Visualización detallada de la antigüedad de los socios
+filtro['Antiguedad Detallada'] = filtro['Antiguedad Detallada'].fillna("Desconocida")  # Manejar NaN si hay valores nulos
+st.write("Antigüedad de los socios filtrados:")
+st.dataframe(filtro[['Nombre', 'Antiguedad Detallada']])  # Mostrar la antigüedad detallada por socio
+
+# Mostrar la antigüedad por categoría
 if 'Antiguedad Categoria' in filtro.columns:
     st.plotly_chart(px.histogram(filtro, x="Antiguedad Categoria", height=400))
 
@@ -114,7 +122,7 @@ st.header("Cantidad de socios y rubros según filtros seleccionados")
 rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
-    
+
 # Mostrar análisis de altas por año solo si el usuario lo solicita
 mostrar_altas = st.sidebar.checkbox("Mostrar altas por año")
 
@@ -129,5 +137,3 @@ cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
 
 # Gráfico de treemap para visualizar los clústeres potenciales
 st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
-
-
