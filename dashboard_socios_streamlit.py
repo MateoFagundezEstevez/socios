@@ -89,11 +89,14 @@ if not filtro.empty:
 else:
     st.write("No hay socios que coincidan con los filtros seleccionados.")
 
-# Reactivación de Socios Inactivos
-st.header("Reactivación de Socios Inactivos")
-inactivos = df[df["Estado"] == "SOLIC-BAJA"]
-st.write(f"Total de socios inactivos: {len(inactivos)}")
-st.plotly_chart(px.histogram(inactivos, x="Rubro", color="Tipo de socio", title="Rubros más afectados"))
+# Mostrar análisis de inactivos solo si el usuario lo solicita
+mostrar_inactivos = st.sidebar.checkbox("Mostrar análisis de socios inactivos")
+
+if mostrar_inactivos:
+    st.header("Reactivación de Socios Inactivos")
+    inactivos = df[df["Estado"] == "SOLIC-BAJA"]
+    st.write(f"Total de socios inactivos: {len(inactivos)}")
+    st.plotly_chart(px.histogram(inactivos, x="Rubro", color="Tipo de socio", title="Rubros más afectados"))
 
 # Totales
 st.header("Cantidad de socios y rubros según filtros seleccionados")
