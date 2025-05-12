@@ -63,14 +63,6 @@ rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
 
-# Inteligencia Institucional
-st.header("Inteligencia Institucional")
-creados_por_ano = df['Fecha de Creacion'].dropna()
-if not creados_por_ano.empty:
-    creados_por_ano = pd.to_datetime(creados_por_ano, errors='coerce').dt.year.value_counts().sort_index()
-    st.subheader("Altas por Año")
-    st.bar_chart(creados_por_ano)
-
 st.subheader("Resumen por Rubro y Tipo")
 resumen = df.groupby(["Rubro", "Tipo de socio"]).size().reset_index(name="Cantidad")
 st.dataframe(resumen.sort_values("Cantidad", ascending=False))
