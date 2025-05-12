@@ -26,8 +26,6 @@ df = cargar_datos()
 # Filtros en la barra lateral
 st.sidebar.header("Filtros")
 estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
-rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
-tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo de socio"].dropna().unique())
 
 st.sidebar.markdown("""
 **Estados de los Socios**:
@@ -40,6 +38,10 @@ st.sidebar.markdown("""
 - **EMSUS**: Enviada solicitud de suspensión.
 - **CANJ**: Socio en canje de servicios (trueque o acuerdo no monetario).
 """)
+
+rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
+tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo de socio"].dropna().unique())
+
 
 # Filtro por Región / Localidad
 if 'Región / Localidad' in df.columns:
