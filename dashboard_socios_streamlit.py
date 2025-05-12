@@ -22,7 +22,6 @@ df = cargar_datos()
 st.sidebar.header("Filtros")
 estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
-departamentos = st.sidebar.multiselect("Departamento", df["Departamento (Envío)"].dropna().unique())
 tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo de socio"].dropna().unique())
 
 filtro = df.copy()
@@ -30,21 +29,16 @@ if estados:
     filtro = filtro[filtro["Estado"].isin(estados)]
 if rubros:
     filtro = filtro[filtro["Rubro"].isin(rubros)]
-if departamentos:
-    filtro = filtro[filtro["Departamento (Envío)"].isin(departamentos)]
 if tipos:
     filtro = filtro[filtro["Tipo de socio"].isin(tipos)]
 
 st.title("Análisis Integral de Socios - Cámara de Comercio")
-st.markdown("Este dashboard permite visualizar información clave para decisiones sobre fidelización, reactivación y estrategias comerciales.")
+st.markdown("Este dashboard permite visualizar información clave para decisiones sobre fidelización, reactivación y estrategias institucionales.")
 
 # Fidelizacion
 st.header("Fidelización de Socios Activos")
 st.subheader("Distribución por Rubro")
 st.plotly_chart(px.histogram(filtro, x="Rubro", color="Tipo de socio", barmode="group", height=400))
-
-st.subheader("Distribución Geográfica")
-st.plotly_chart(px.histogram(filtro, x="Departamento (Envío)", color="Tipo de socio", barmode="group"))
 
 st.subheader("Antigüedad de los Socios")
 st.plotly_chart(px.histogram(filtro, x="Antiguedad", nbins=20))
@@ -52,8 +46,7 @@ st.plotly_chart(px.histogram(filtro, x="Antiguedad", nbins=20))
 # Detalle de socios filtrados
 st.subheader("Detalle de Socios Filtrados")
 if not filtro.empty:
-    columnas_contacto = [col for col in filtro.columns if any(key in col.lower() for key in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
-    columnas_mostrar = list(dict.fromkeys([col for col in filtro.columns if "nombre" in col.lower() or "rubro" in col.lower() or "contacto" in col.lower() or "mail" in col.lower() or "email" in col.lower() or "tel" in col.lower()]))
+    columnas_mostrar = [col for col in filtro.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
     st.dataframe(filtro[columnas_mostrar].drop_duplicates().reset_index(drop=True))
 else:
     st.write("No hay socios que coincidan con los filtros seleccionados.")
@@ -70,17 +63,6 @@ rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
 
-# Mapeo institucional y oportunidades
-st.header("Mapeo de Socios y Cooperación Institucional")
-st.subheader("Mapa de Distribución por Departamento")
-mapa_data = df["Departamento (Envío)"].value_counts().reset_index()
-mapa_data.columns = ["Departamento", "Cantidad"]
-st.plotly_chart(px.choropleth(mapa_data, locationmode="country names", locations="Departamento", color="Cantidad", title="Distribución de socios por departamento (simulado)", color_continuous_scale="Blues"))
-
-st.subheader("Identificación de Oportunidades de Cooperación")
-coop_df = df.groupby(["Departamento (Envío)", "Rubro"]).size().reset_index(name="Cantidad")
-st.plotly_chart(px.treemap(coop_df, path=['Departamento (Envío)', 'Rubro'], values='Cantidad', title="Mapa de potenciales clústers y cooperaciones"))
-
 # Inteligencia Institucional
 st.header("Inteligencia Institucional")
 creados_por_ano = df['Fecha de Creacion'].dropna()
@@ -89,18 +71,20 @@ if not creados_por_ano.empty:
     st.subheader("Altas por Año")
     st.bar_chart(creados_por_ano)
 
-st.subheader("Resumen por Departamento")
-depa_data = df["Departamento (Envío)"].value_counts().reset_index()
-depa_data.columns = ["Departamento", "Cantidad"]
-st.dataframe(depa_data)
+st.subheader("Resumen por Rubro y Tipo")
+resumen = df.groupby(["Rubro", "Tipo de socio"]).size().reset_index(name="Cantidad")
+st.dataframe(resumen.sort_values("Cantidad", ascending=False))
 
-# Recomendaciones
-st.header("Recomendaciones Estratégicas")
-st.markdown("""
-- **Fidelización**: Crear beneficios segmentados por rubro, como capacitaciones o convenios exclusivos.
-- **Reactivación**: Contactar sectores con altas bajas como prioridad, usando encuestas para entender causas.
-- **Difusión**: Email marketing personalizado según antigüedad y tipo de socio.
-- **Cooperación**: Identificar regiones y rubros con alta concentración para alianzas estratégicas regionales.
-- **Captación**: Fortalecer presencia institucional en zonas con baja concentración de socios.
-""")
+# Identificación de Oportunidades de Cooperación
+st.header("Oportunidades de Cooperación Institucional")
+st.subheader("Clústeres por Rubro")
+cluster_df = df[~df["Rubro"].isna()].copy()
+cluster_df = cluster_df.groupby("Rubro").size().reset_index(name="Cantidad")
+cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
+st.plotly_chart(px.treemap(cluster_df, path=['Rubro'], values='Cantidad', title="Clústeres Potenciales"))
 
+st.subheader("Detalle por Rubro Seleccionado")
+if rubros:
+    cluster_detalle = df[df["Rubro"].isin(rubros)]
+    columnas_detalle = [col for col in cluster_detalle.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
+    st.dataframe(cluster_detalle[columnas_detalle].drop_duplicates().reset_index(drop=True))
