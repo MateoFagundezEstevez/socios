@@ -19,6 +19,11 @@ def cargar_datos():
     else:
         df['Antiguedad'] = datetime.today().year - df['Fecha Creación Empresa'].dt.year
 
+    # Clasificación de la antigüedad en categorías
+    bins = [0, 1, 5, float('inf')]
+    labels = ['Nuevo', 'Medio', 'Veterano']
+    df['Antiguedad Categoria'] = pd.cut(df['Antiguedad'], bins=bins, labels=labels, right=False)
+
     return df
 
 df = cargar_datos()
@@ -41,7 +46,6 @@ st.sidebar.markdown("""
 
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
 tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo de socio"].dropna().unique())
-
 
 # Filtro por Región / Localidad
 if 'Región / Localidad' in df.columns:
@@ -78,8 +82,8 @@ st.subheader("Distribución por Rubro")
 st.plotly_chart(px.histogram(filtro, x="Rubro", color="Tipo de socio", barmode="group", height=400))
 
 st.subheader("Antigüedad de los Socios")
-if 'Antiguedad' in filtro.columns:
-    st.plotly_chart(px.histogram(filtro, x="Antiguedad", nbins=20))
+if 'Antiguedad Categoria' in filtro.columns:
+    st.plotly_chart(px.histogram(filtro, x="Antiguedad Categoria", height=400))
 
 # Detalle de socios filtrados
 st.subheader("Detalle de Socios Filtrados")
