@@ -23,6 +23,12 @@ estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), defau
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
 tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo de socio"].dropna().unique())
 
+# Filtro por Departamento (nuevo filtro)
+if 'Departamento' in df.columns:
+    departamentos = st.sidebar.multiselect("Departamento", df["Departamento"].dropna().unique())
+else:
+    departamentos = []
+
 # Filtrado de datos
 filtro = df.copy()
 if estados:
@@ -31,6 +37,8 @@ if rubros:
     filtro = filtro[filtro["Rubro"].isin(rubros)]
 if tipos:
     filtro = filtro[filtro["Tipo de socio"].isin(tipos)]
+if departamentos:
+    filtro = filtro[filtro["Departamento"].isin(departamentos)]
 
 # Título de la página
 st.title("Análisis Integral de Socios - Cámara de Comercio")
@@ -94,26 +102,16 @@ st.dataframe(resumen.sort_values("Cantidad", ascending=False))
 
 # Identificación de Oportunidades de Cooperación Institucional
 st.header("Oportunidades de Cooperación Institucional")
-st.subheader("Clústeres por Rubro")
+st.subheader("Clústeres por Rubro y Departamento")
 
-# Clústeres por rubro
-cluster_df = df[~df["Rubro"].isna()].copy()
-cluster_df = cluster_df.groupby("Rubro").size().reset_index(name="Cantidad")
+# Clústeres por rubro y departamento
+cluster_df = df[~df["Rubro"].isna() & ~df["Departamento"].isna()].copy()
+cluster_df = cluster_df.groupby(["Rubro", "Departamento"]).size().reset_index(name="Cantidad")
 cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
-st.plotly_chart(px.treemap(cluster_df, path=['Rubro'], values='Cantidad', title="Clústeres Potenciales"))
+st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Departamento'], values='Cantidad', title="Clústeres Potenciales por Departamento"))
 
-st.subheader("Detalle por Rubro Seleccionado")
-if rubros:
-    cluster_detalle = df[df["Rubro"].isin(rubros)]
+st.subheader("Detalle por Rubro y Departamento Seleccionado")
+if rubros and departamentos:
+    cluster_detalle = df[df["Rubro"].isin(rubros) & df["Departamento"].isin(departamentos)]
     columnas_detalle = [col for col in cluster_detalle.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
     st.dataframe(cluster_detalle[columnas_detalle].drop_duplicates().reset_index(drop=True))
-
-# Recomendaciones Estratégicas
-st.header("Recomendaciones Estratégicas")
-st.markdown("""
-- **Fidelización**: Crear beneficios segmentados por rubro, como capacitaciones o convenios exclusivos.
-- **Reactivación**: Contactar sectores con altas bajas como prioridad, usando encuestas para entender causas.
-- **Difusión**: Email marketing personalizado según antigüedad y tipo de socio.
-- **Cooperación**: Identificar rubros con alta concentración para alianzas estratégicas sectoriales.
-- **Captación**: Fortalecer presencia institucional en sectores con baja concentración de socios.
-""")
