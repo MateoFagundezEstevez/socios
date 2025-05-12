@@ -115,13 +115,3 @@ if rubros and regiones:
     cluster_detalle = df[df["Rubro"].isin(rubros) & df["Región / Localidad"].isin(regiones)]
     columnas_detalle = [col for col in cluster_detalle.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
     st.dataframe(cluster_detalle[columnas_detalle].drop_duplicates().reset_index(drop=True))
-
-# Recomendaciones Estratégicas
-st.header("Recomendaciones Estratégicas")
-st.markdown("""
-- **Fidelización**: Crear beneficios segmentados por rubro y región/localidad, como capacitaciones o convenios exclusivos.
-- **Reactivación**: Contactar sectores con altas bajas como prioridad, usando encuestas para entender causas.
-- **Difusión**: Email marketing personalizado según antigüedad y tipo de socio, y la localización por región/localidad.
-- **Cooperación**: Identificar rubros con alta concentración por región/localidad para alianzas estratégicas locales.
-- **Captación**: Fortalecer presencia institucional en sectores y regiones/localidades con baja concentración de socios.
-""")
