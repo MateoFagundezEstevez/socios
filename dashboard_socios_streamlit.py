@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import geopandas as gpd
 from datetime import datetime
 
 # Cargar datos
@@ -74,17 +73,6 @@ if not creados_por_ano.empty:
 st.subheader("Resumen por Rubro y Tipo")
 resumen = df.groupby(["Rubro", "Tipo de socio"]).size().reset_index(name="Cantidad")
 st.dataframe(resumen.sort_values("Cantidad", ascending=False))
-
-# Mapa de Uruguay
-st.header("Mapa de Distribución de Socios en Uruguay")
-# Cargar mapa de Uruguay con geopandas
-uruguay_map = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
-uruguay_map = uruguay_map[uruguay_map.name == "Uruguay"]
-
-# Mostrar el mapa
-st.plotly_chart(px.choropleth_mapbox(df, geojson=uruguay_map.geometry, locations=df.index, color="Rubro", hover_name="Rubro",
-                                      title="Distribución Geográfica de Socios en Uruguay", color_continuous_scale="Viridis",
-                                      mapbox_style="carto-positron", center={"lat": -33.0, "lon": -56.0}, zoom=5))
 
 # Identificación de Oportunidades de Cooperación
 st.header("Oportunidades de Cooperación Institucional")
