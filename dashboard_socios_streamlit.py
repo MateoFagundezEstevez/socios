@@ -67,7 +67,7 @@ st.write(f"Total de socios inactivos: {len(inactivos)}")
 st.plotly_chart(px.histogram(inactivos, x="Rubro", color="Tipo de socio", title="Rubros más afectados"))
 
 # Totales
-st.header("Difusión de Servicios y Beneficios")
+st.header("Totales")
 rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
