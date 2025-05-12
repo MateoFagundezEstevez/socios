@@ -68,6 +68,11 @@ if regiones:
 st.title("Análisis Integral de Socios - Cámara de Comercio")
 st.markdown("Este dashboard permite visualizar información clave para decisiones sobre fidelización, reactivación y estrategias institucionales.")
 
+# Conteo de socios activos (divertido)
+socios_activos = filtro[filtro["Estado"] == "VIG"].shape[0]
+st.markdown(f"🎉 ¡Tenemos **{socios_activos}** socios activos! 🎉")
+st.markdown("Estos socios representan el motor de nuestra comunidad, ¡y estamos aquí para ayudarlos a crecer y prosperar!")
+
 # Explicación de tipos de socios
 st.markdown("""
 **Tipos de Socios**:
