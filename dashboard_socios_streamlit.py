@@ -50,6 +50,14 @@ if regiones:
 st.title("Análisis Integral de Socios - Cámara de Comercio")
 st.markdown("Este dashboard permite visualizar información clave para decisiones sobre fidelización, reactivación y estrategias institucionales.")
 
+# Explicación de tipos de socios
+st.markdown("""
+**Tipos de Socios**:
+- **TS01**: Socios Activos (Empresas socias directas con todos los beneficios).
+- **TS02**: Socios Adherentes (Participan parcialmente de servicios).
+- **TS03**: Socios Institucionales (Vinculación con instituciones o entes públicos).
+""")
+
 # Fidelización
 st.header("Fidelización de Socios Activos")
 st.subheader("Distribución por Rubro")
