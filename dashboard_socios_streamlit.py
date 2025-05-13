@@ -7,7 +7,7 @@ from datetime import datetime
 @st.cache_data
 def cargar_datos():
     df = pd.read_csv("Cuentas (1).csv")
-    df.columns = df.columns.str.strip().str.replace('"', '')
+    df.columns = df.columns.str.strip().str.replace('"', '')  # Limpiar nombres de columnas
 
     # Procesar fechas y calcular antigüedad
     if 'Fecha Creación Empresa' in df.columns:
@@ -37,7 +37,7 @@ df = cargar_datos()
 # Filtros en la barra lateral
 st.sidebar.header("Filtros")
 
-estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
+estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG", "PROSP"])
 # Expansor para los estados de los socios
 with st.sidebar.expander("Ver información sobre Estados de los Socios"):
     st.markdown("""
@@ -76,9 +76,10 @@ if regiones:
 st.title("Análisis Integral de Socios - Cámara de Comercio")
 st.markdown("Este dashboard permite visualizar información clave para decisiones sobre fidelización, reactivación y estrategias institucionales.")
 
-# Conteo de socios activos (divertido)
+# Conteo de socios activos y prospectos
 socios_activos = filtro[filtro["Estado"] == "VIG"].shape[0]
-st.markdown(f"🎉 ¡Tenemos **{socios_activos}** socios activos! 🎉")
+socios_prospectos = filtro[filtro["Estado"] == "PROSP"].shape[0]
+st.markdown(f"🎉 ¡Tenemos **{socios_activos}** socios activos y **{socios_prospectos}** prospectos! 🎉")
 st.markdown("Estos socios representan el motor de nuestra comunidad, ¡y estamos aquí para ayudarlos a crecer y prosperar!")
 
 # Explicación de tipos de socios
@@ -87,6 +88,7 @@ st.markdown("""
 - **TS01**: Socios Activos (Empresas socias directas con todos los beneficios).
 - **TS02**: Socios Adherentes (Participan parcialmente de servicios).
 - **TS03**: Socios Institucionales (Vinculación con instituciones o entes públicos).
+- **TS04**: Socios Honorarios (No participan activamente, pero tienen reconocimiento por su contribución).
 """)
 
 # Fidelización
@@ -120,7 +122,7 @@ st.header("Cantidad de socios y rubros según filtros seleccionados")
 rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
-    
+
 # Clústeres por Rubro y Región/Localidad
 cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
 
