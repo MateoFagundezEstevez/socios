@@ -38,9 +38,10 @@ df = cargar_datos()
 st.sidebar.header("Filtros")
 
 estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
+
 # Expansor para los estados de los socios
 with st.sidebar.expander("Ver información sobre Estados de los Socios"):
-    st.markdown("""
+    st.markdown(""" 
     **Estados de los Socios**:
     - **VIGENTE**: Socio activo y vigente.
     - **SOLIC-BAJA**: En proceso de baja o ya inactivo.
@@ -50,7 +51,10 @@ with st.sidebar.expander("Ver información sobre Estados de los Socios"):
     """)
 
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
-tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo de socio"].dropna().unique())
+tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo"].dropna().unique())
+
+# Filtro para buscar "Prospecto" en "Tipo"
+prospecto_filter = st.sidebar.checkbox("Filtrar solo Prospectos en Tipo", value=False)
 
 # Filtro por Región / Localidad
 if 'Región / Localidad' in df.columns:
@@ -60,14 +64,19 @@ else:
 
 # Aplicar filtros
 filtro = df.copy()
+
 if estados:
     filtro = filtro[filtro["Estado"].isin(estados)]
 if rubros:
     filtro = filtro[filtro["Rubro"].isin(rubros)]
 if tipos:
-    filtro = filtro[filtro["Tipo de socio"].isin(tipos)]
+    filtro = filtro[filtro["Tipo"].isin(tipos)]
 if regiones:
     filtro = filtro[filtro["Región / Localidad"].isin(regiones)]
+
+# Filtrar los prospectos si se seleccionó la opción
+if prospecto_filter:
+    filtro = filtro[filtro["Tipo"].str.contains("Prospecto", case=False, na=False)]
 
 # Título
 st.title("Análisis Integral de Socios - Cámara de Comercio")
@@ -90,7 +99,7 @@ st.markdown("""
 # Fidelización
 st.header("Fidelización de Socios Activos")
 st.subheader("Distribución por Rubro")
-st.plotly_chart(px.histogram(filtro, x="Rubro", color="Tipo de socio", barmode="group", height=400))
+st.plotly_chart(px.histogram(filtro, x="Rubro", color="Tipo", barmode="group", height=400))
 
 st.subheader("Antigüedad de los Socios")
 if 'Antiguedad Categoria' in filtro.columns:
@@ -111,7 +120,7 @@ if mostrar_inactivos:
     st.header("Reactivación de Socios Inactivos")
     inactivos = df[df["Estado"] == "SOLIC-BAJA"]
     st.write(f"Total de socios inactivos: {len(inactivos)}")
-    st.plotly_chart(px.histogram(inactivos, x="Rubro", color="Tipo de socio", title="Rubros más afectados"))
+    st.plotly_chart(px.histogram(inactivos, x="Rubro", color="Tipo", title="Rubros más afectados"))
 
 # Totales
 st.header("Cantidad de socios y rubros según filtros seleccionados")
