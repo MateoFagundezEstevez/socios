@@ -115,32 +115,11 @@ cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
 # Gráfico de Treemap fijo para visualizar los clústeres potenciales
 st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
 
-# **Altas por Año (Desplegables)**
-st.header("Altas por Año")
-años_disponibles = df['Año Alta'].dropna().unique()
-años_disponibles = sorted(años_disponibles)
-
-# Filtro de Año
-años_seleccionados = st.sidebar.multiselect("Seleccionar Año(s)", años_disponibles, default=años_disponibles)
-
-# Contar las altas por año
-conteo_altas = df['Año Alta'].value_counts().sort_index()
-
-# Mostrar gráfico de barras con las altas por año
-if años_seleccionados:
-    st.subheader("Altas por Año Seleccionado(s)")
-    st.bar_chart(conteo_altas[años_seleccionados])
-else:
-    st.subheader("Altas por Año")
-    st.bar_chart(conteo_altas)
-
-# Mostrar empresas creadas por año seleccionado
-if años_seleccionados:
-    st.header(f"Empresas creadas en {', '.join(map(str, años_seleccionados))}")
-    empresas_por_año = df[df['Año Alta'].isin(años_seleccionados)]
-    empresas_mostradas = empresas_por_año[['Nombre Empresa', 'Fecha Creación Empresa', 'Rubro', 'Estado', 'Tipo de socio']]
-
-    # Mostrar tabla de empresas
+# **Detalle de Empresas Filtradas**
+st.header("Empresas Filtradas según los Filtros Aplicados")
+if not filtro.empty:
+    empresas_mostradas = filtro[['Nombre Empresa', 'Fecha Creación Empresa', 'Rubro', 'Estado', 'Tipo de socio']]
     st.write(empresas_mostradas)
 else:
-    st.write("Seleccione un año para ver las empresas creadas en ese año.")
+    st.write("No hay empresas que coincidan con los filtros seleccionados.")
+
