@@ -12,6 +12,8 @@ def cargar_datos():
     # Procesar fechas y calcular antigüedad
     if 'Fecha Creación Empresa' in df.columns:
         df['Fecha Creación Empresa'] = pd.to_datetime(df['Fecha Creación Empresa'], errors='coerce')
+        df['Año Alta'] = df['Fecha Creación Empresa'].dt.year
+
 
     if df['Fecha Creación Empresa'].dropna().empty and 'Fecha de Creación' in df.columns:
         df['Fecha de Creación'] = pd.to_datetime(df['Fecha de Creación'], errors='coerce')
