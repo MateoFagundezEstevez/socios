@@ -106,7 +106,16 @@ rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
 
-# **Altas por Año**
+# **Clúster Fijo (Sin desplegar)**
+st.header("Clústeres Potenciales")
+cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
+cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_index(name="Cantidad")
+cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
+
+# Gráfico de Treemap fijo para visualizar los clústeres potenciales
+st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
+
+# **Altas por Año (Desplegables)**
 st.header("Altas por Año")
 años_disponibles = df['Año Alta'].dropna().unique()
 años_disponibles = sorted(años_disponibles)
@@ -118,8 +127,12 @@ años_seleccionados = st.sidebar.multiselect("Seleccionar Año(s)", años_dispon
 conteo_altas = df['Año Alta'].value_counts().sort_index()
 
 # Mostrar gráfico de barras con las altas por año
-st.subheader("Altas por Año")
-st.bar_chart(conteo_altas)
+if años_seleccionados:
+    st.subheader("Altas por Año Seleccionado(s)")
+    st.bar_chart(conteo_altas[años_seleccionados])
+else:
+    st.subheader("Altas por Año")
+    st.bar_chart(conteo_altas)
 
 # Mostrar empresas creadas por año seleccionado
 if años_seleccionados:
@@ -131,21 +144,3 @@ if años_seleccionados:
     st.write(empresas_mostradas)
 else:
     st.write("Seleccione un año para ver las empresas creadas en ese año.")
-
-# Mostrar análisis de altas por año solo si el usuario lo solicita
-mostrar_altas = st.sidebar.checkbox("Mostrar altas por año")
-if mostrar_altas:
-    # Clústeres por Rubro y Región/Localidad
-    cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
-
-    # Agrupamos por Rubro y Región/Localidad y contamos la cantidad de socios
-    cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_index(name="Cantidad")
-
-    # Filtramos los clústeres que tienen más de 1 socio
-    cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
-
-    # Gráfico de treemap para visualizar los clústeres potenciales
-    st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
-
-    # Gráfico de treemap para visualizar los clústeres potenciales
-    st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
