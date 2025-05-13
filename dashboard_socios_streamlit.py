@@ -44,7 +44,6 @@ with st.sidebar.expander("Ver información sobre Estados de los Socios"):
     **Estados de los Socios**:
     - **VIG**: Socio activo y vigente.
     - **SOLIC-BAJA**: En proceso de baja o ya inactivo.
-    - **PROSP**: Prospecto, aún no es socio formal.
     - **HON**: Socio honorario.
     - **LIC**: Socio con licencia temporal (por ejemplo, suspendido).
     - **CAMRUT**: Socio con cambio de RUT (posible reingreso o reorganización).
