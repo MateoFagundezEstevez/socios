@@ -37,17 +37,21 @@ df = cargar_datos()
 # Filtros en la barra lateral
 st.sidebar.header("Filtros")
 
+# Filtro de Estado con opciones seleccionables
 estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
 
 # Expansor para los estados de los socios
 with st.sidebar.expander("Ver información sobre Estados de los Socios"):
-    st.markdown(""" 
+    st.markdown("""
     **Estados de los Socios**:
-    - **VIGENTE**: Socio activo y vigente.
+    - **VIG**: Socio activo y vigente.
     - **SOLIC-BAJA**: En proceso de baja o ya inactivo.
-    - **HONORARIOS**: Socio honorario.
-    - **SUSPENDIDOS**: Enviada solicitud de suspensión.
-    - **CANJE**: Socio en canje de servicios (trueque o acuerdo no monetario).
+    - **BAJ**: Baja. El socio ha completado el proceso de baja y ya no está asociado.
+    - **HON**: Socio honorario. El socio disfruta de algunos beneficios sin ser un socio activo con todas las obligaciones.
+    - **LIC**: Socio licenciado. El socio tiene licencia temporal para no participar activamente.
+    - **CAMRUT**: Socio en cambio de rut. El socio está realizando cambios administrativos en su registro.
+    - **EMSUS**: Socio en suspensión. El socio está suspendido temporalmente.
+    - **CANJ**: Socio en canje de servicios. Participa en un intercambio de servicios, sin transacciones monetarias.
     """)
 
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
@@ -92,7 +96,7 @@ st.markdown("""
 **Tipos de Socios**:
 - **TS01**: Socios Activos (Empresas socias directas con todos los beneficios).
 - **TS02**: Socios Adherentes (Participan parcialmente de servicios).
-- **TS03**: Socios Institucionales de Gremiales(Vinculación con instituciones o entes públicos).
+- **TS03**: Socios Institucionales de Gremiales (Vinculación con instituciones o entes públicos).
 - **TS04**: Socios Honorarios.
 """)
 
