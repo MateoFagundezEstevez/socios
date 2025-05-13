@@ -118,16 +118,24 @@ if mostrar_inactivos:
 mostrar_altas = st.sidebar.checkbox("Mostrar altas por año")
 if mostrar_altas:
     st.header("Altas de Socios por Año")
+
     if 'Fecha Creación Empresa' in df.columns:
-        df_filtrado_fecha = df.dropna(subset=['Fecha Creación Empresa']).copy()
-        df_filtrado_fecha['Año Alta'] = df_filtrado_fecha['Fecha Creación Empresa'].dt.year
+        df['Año Alta'] = df['Fecha Creación Empresa'].dt.year
 
-        altas_por_año = df_filtrado_fecha['Año Alta'].value_counts().sort_index().reset_index()
-        altas_por_año.columns = ['Año', 'Cantidad de Altas']
+        # Filtrar por fechas válidas (no nulas)
+        altas_por_anio = df.dropna(subset=['Año Alta'])['Año Alta'].value_counts().sort_index()
 
-        st.plotly_chart(px.bar(altas_por_año, x='Año', y='Cantidad de Altas', title='Altas de Socios por Año'))
+        # Mostrar gráfico
+        fig = px.bar(
+            x=altas_por_anio.index,
+            y=altas_por_anio.values,
+            labels={'x': 'Año', 'y': 'Cantidad de Altas'},
+            title="Altas de Socios por Año"
+        )
+        st.plotly_chart(fig)
     else:
-        st.write("No hay datos suficientes para mostrar las altas por año.")
+        st.warning("No se encontró la columna 'Fecha Creación Empresa'.")
+
 
 # Totales
 st.header("Cantidad de socios y rubros según filtros seleccionados")
