@@ -7,7 +7,7 @@ from datetime import datetime
 @st.cache_data
 def cargar_datos():
     df = pd.read_csv("Cuentas (1).csv")
-    df.columns = df.columns.str.strip().str.replace('"', '')  # Limpiar nombres de columnas
+    df.columns = df.columns.str.strip().str.replace('"', '')
 
     # Procesar fechas y calcular antigüedad
     if 'Fecha Creación Empresa' in df.columns:
@@ -37,14 +37,13 @@ df = cargar_datos()
 # Filtros en la barra lateral
 st.sidebar.header("Filtros")
 
-estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG", "PROSP"])
+estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique())
 # Expansor para los estados de los socios
 with st.sidebar.expander("Ver información sobre Estados de los Socios"):
     st.markdown("""
     **Estados de los Socios**:
     - **VIG**: Socio activo y vigente.
     - **SOLIC-BAJA**: En proceso de baja o ya inactivo.
-    - **PROSP**: Prospecto, aún no es socio formal.
     - **HON**: Socio honorario.
     - **LIC**: Socio con licencia temporal (por ejemplo, suspendido).
     - **CAMRUT**: Socio con cambio de RUT (posible reingreso o reorganización).
@@ -61,6 +60,13 @@ if 'Región / Localidad' in df.columns:
 else:
     regiones = []
 
+# Filtro de Prospectos basado en el Tipo de Socio
+# Si "PROSP" es una opción en Tipo de socio, añadirlo al filtro de Prospectos
+if 'PROSP' in df["Tipo de socio"].unique():
+    prospectos = st.sidebar.checkbox("Mostrar Prospectos", value=True)
+else:
+    prospectos = False
+
 # Aplicar filtros
 filtro = df.copy()
 if estados:
@@ -72,14 +78,16 @@ if tipos:
 if regiones:
     filtro = filtro[filtro["Región / Localidad"].isin(regiones)]
 
+if prospectos:
+    filtro = filtro[filtro["Tipo de socio"] == "PROSP"]
+
 # Título
 st.title("Análisis Integral de Socios - Cámara de Comercio")
 st.markdown("Este dashboard permite visualizar información clave para decisiones sobre fidelización, reactivación y estrategias institucionales.")
 
-# Conteo de socios activos y prospectos
+# Conteo de socios activos (divertido)
 socios_activos = filtro[filtro["Estado"] == "VIG"].shape[0]
-socios_prospectos = filtro[filtro["Estado"] == "PROSP"].shape[0]
-st.markdown(f"🎉 ¡Tenemos **{socios_activos}** socios activos y **{socios_prospectos}** prospectos! 🎉")
+st.markdown(f"🎉 ¡Tenemos **{socios_activos}** socios activos! 🎉")
 st.markdown("Estos socios representan el motor de nuestra comunidad, ¡y estamos aquí para ayudarlos a crecer y prosperar!")
 
 # Explicación de tipos de socios
@@ -88,7 +96,7 @@ st.markdown("""
 - **TS01**: Socios Activos (Empresas socias directas con todos los beneficios).
 - **TS02**: Socios Adherentes (Participan parcialmente de servicios).
 - **TS03**: Socios Institucionales (Vinculación con instituciones o entes públicos).
-- **TS04**: Socios Honorarios (No participan activamente, pero tienen reconocimiento por su contribución).
+- **TS04**: Socios Honorarios (Empresas con un rol institucional o relacionado al desarrollo social).
 """)
 
 # Fidelización
