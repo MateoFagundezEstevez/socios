@@ -117,27 +117,31 @@ if mostrar_inactivos:
 # Altas por año
 mostrar_altas = st.sidebar.checkbox("Mostrar altas por año")
 if mostrar_altas:
-    st.header("Altas de Socios por Año")
+    st.header("Altas de Socios por Año (2023 - 2026)")
 
     if 'Fecha Creación Empresa' in df.columns:
         df['Año Alta'] = df['Fecha Creación Empresa'].dt.year
 
-        # Filtrar por fechas válidas (no nulas)
-        altas_por_anio = df.dropna(subset=['Año Alta'])['Año Alta'].value_counts().sort_index().reset_index()
-        altas_por_anio.columns = ['Año', 'Cantidad']
+        # Filtrar por años específicos
+        años_deseados = [2023, 2024, 2025, 2026]
+        altas_filtradas = df[df['Año Alta'].isin(años_deseados)]
 
-        # Mostrar gráfico con plotly
-        fig = px.bar(
-            altas_por_anio,
-            x='Año',
-            y='Cantidad',
-            title="Altas de Socios por Año",
-            labels={"Año": "Año de Alta", "Cantidad": "Cantidad de Socios"}
-        )
-        st.plotly_chart(fig)
+        if not altas_filtradas.empty:
+            altas_por_anio = altas_filtradas['Año Alta'].value_counts().sort_index().reset_index()
+            altas_por_anio.columns = ['Año', 'Cantidad']
+
+            fig = px.bar(
+                altas_por_anio,
+                x='Año',
+                y='Cantidad',
+                title="Altas de Socios por Año (2023 - 2026)",
+                labels={"Año": "Año de Alta", "Cantidad": "Cantidad de Socios"}
+            )
+            st.plotly_chart(fig)
+        else:
+            st.info("No se encontraron altas en los años 2023, 2024, 2025 o 2026.")
     else:
         st.warning("No se encontró la columna 'Fecha Creación Empresa'.")
-
 
 # Totales
 st.header("Cantidad de socios y rubros según filtros seleccionados")
