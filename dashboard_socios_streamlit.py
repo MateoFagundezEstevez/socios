@@ -123,14 +123,16 @@ if mostrar_altas:
         df['Año Alta'] = df['Fecha Creación Empresa'].dt.year
 
         # Filtrar por fechas válidas (no nulas)
-        altas_por_anio = df.dropna(subset=['Año Alta'])['Año Alta'].value_counts().sort_index()
+        altas_por_anio = df.dropna(subset=['Año Alta'])['Año Alta'].value_counts().sort_index().reset_index()
+        altas_por_anio.columns = ['Año', 'Cantidad']
 
-        # Mostrar gráfico
+        # Mostrar gráfico con plotly
         fig = px.bar(
-            x=altas_por_anio.index,
-            y=altas_por_anio.values,
-            labels={'x': 'Año', 'y': 'Cantidad de Altas'},
-            title="Altas de Socios por Año"
+            altas_por_anio,
+            x='Año',
+            y='Cantidad',
+            title="Altas de Socios por Año",
+            labels={"Año": "Año de Alta", "Cantidad": "Cantidad de Socios"}
         )
         st.plotly_chart(fig)
     else:
