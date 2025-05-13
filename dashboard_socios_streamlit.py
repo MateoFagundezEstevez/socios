@@ -91,15 +91,6 @@ socios_activos = filtro[filtro["Estado"] == "VIG"].shape[0]
 st.markdown(f"🎉 ¡Tenemos **{socios_activos}** socios activos! 🎉")
 st.markdown("Estos socios representan el motor de nuestra comunidad, ¡y estamos aquí para ayudarlos a crecer y prosperar!")
 
-# Explicación de tipos de socios
-st.markdown("""
-**Tipos de Socios**:
-- **TS01**: Socios Activos (Empresas socias directas con todos los beneficios).
-- **TS02**: Socios Adherentes (Participan parcialmente de servicios).
-- **TS03**: Socios Institucionales de Gremiales (Vinculación con instituciones o entes públicos).
-- **TS04**: Socios Honorarios.
-""")
-
 # Fidelización
 st.header("Fidelización de Socios Activos")
 st.subheader("Distribución por Rubro")
