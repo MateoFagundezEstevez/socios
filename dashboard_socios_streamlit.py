@@ -57,9 +57,6 @@ with st.sidebar.expander("Ver información sobre Estados de los Socios"):
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
 tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo"].dropna().unique())
 
-# Filtro para buscar "Prospecto" en "Tipo"
-prospecto_filter = st.sidebar.checkbox("Ver Prospectos", value=False)
-
 # Filtro por Región / Localidad
 if 'Región / Localidad' in df.columns:
     regiones = st.sidebar.multiselect("Región / Localidad", df["Región / Localidad"].dropna().unique())
@@ -77,6 +74,9 @@ if tipos:
     filtro = filtro[filtro["Tipo"].isin(tipos)]
 if regiones:
     filtro = filtro[filtro["Región / Localidad"].isin(regiones)]
+
+# Filtro para buscar "Prospecto" en "Tipo"
+prospecto_filter = st.sidebar.checkbox("Ver Prospectos", value=False)
 
 # Filtrar los prospectos si se seleccionó la opción
 if prospecto_filter:
