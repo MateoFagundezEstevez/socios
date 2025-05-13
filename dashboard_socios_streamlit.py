@@ -119,35 +119,25 @@ if mostrar_inactivos:
 # Altas por año
 mostrar_altas = st.sidebar.checkbox("Mostrar altas por año")
 if mostrar_altas:
-    st.header("Altas de Socios por Año (2023 - 2026)")
+    st.header("Altas por Año (2023–2026)")
 
-    if 'Fecha Creación Empresa' in df.columns:
-        # Asegurarse de que la columna esté en formato fecha
-        df['Fecha Creación Empresa'] = pd.to_datetime(df['Fecha Creación Empresa'], errors='coerce')
-        df['Año Alta'] = df['Fecha Creación Empresa'].dt.year
+    # Asegurarse de que la columna está en formato datetime
+    df['Fecha Creación Empresa'] = pd.to_datetime(df['Fecha Creación Empresa'], errors='coerce')
 
-        # Filtrar solo los años deseados
-        años_deseados = [2023, 2024, 2025, 2026]
-        df_altas = df[df['Año Alta'].isin(años_deseados)]
+    # Extraer el año
+    df['Año Alta'] = df['Fecha Creación Empresa'].dt.year
 
-        if not df_altas.empty:
-            altas_por_año = df_altas['Año Alta'].value_counts().sort_index().reset_index()
-            altas_por_año.columns = ['Año', 'Cantidad de Altas']
+    # Filtrar años relevantes
+    años_objetivo = [2023, 2024, 2025, 2026]
+    altas_filtradas = df[df['Año Alta'].isin(años_objetivo)]
 
-            fig = px.bar(
-                altas_por_año,
-                x='Año',
-                y='Cantidad de Altas',
-                title="Altas de Socios por Año (2023 - 2026)",
-                labels={"Año": "Año de Alta", "Cantidad de Altas": "Cantidad de Socios"},
-                text='Cantidad de Altas'
-            )
-            fig.update_traces(textposition='outside')
-            st.plotly_chart(fig)
-        else:
-            st.info("No se registraron nuevas empresas en los años 2023, 2024, 2025 o 2026.")
+    # Contar por año
+    conteo_altas = altas_filtradas['Año Alta'].value_counts().sort_index()
+
+    if not conteo_altas.empty:
+        st.bar_chart(conteo_altas)
     else:
-        st.warning("No se encontró la columna 'Fecha Creación Empresa'.")
+        st.info("No hay altas registradas para los años seleccionados.")
 
 # Totales
 st.header("Cantidad de socios y rubros según filtros seleccionados")
