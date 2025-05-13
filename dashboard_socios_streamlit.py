@@ -58,7 +58,7 @@ rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
 tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo"].dropna().unique())
 
 # Filtro para buscar "Prospecto" en "Tipo"
-prospecto_filter = st.sidebar.checkbox("Filtrar solo Prospectos en Tipo", value=False)
+prospecto_filter = st.sidebar.checkbox("Ver Prospectos", value=False)
 
 # Filtro por Región / Localidad
 if 'Región / Localidad' in df.columns:
