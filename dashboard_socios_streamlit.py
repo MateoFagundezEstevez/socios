@@ -111,13 +111,15 @@ st.header("Altas por Año")
 años_disponibles = df['Año Alta'].dropna().unique()
 años_disponibles = sorted(años_disponibles)
 
-# Mostrar gráfico de barras con las altas por año
-conteo_altas = df['Año Alta'].value_counts().sort_index()
-st.subheader("Altas por Año")
-st.bar_chart(conteo_altas)
-
 # Filtro de Año
 años_seleccionados = st.sidebar.multiselect("Seleccionar Año(s)", años_disponibles, default=años_disponibles)
+
+# Contar las altas por año
+conteo_altas = df['Año Alta'].value_counts().sort_index()
+
+# Mostrar gráfico de barras con las altas por año
+st.subheader("Altas por Año")
+st.bar_chart(conteo_altas)
 
 # Mostrar empresas creadas por año seleccionado
 if años_seleccionados:
@@ -141,6 +143,9 @@ if mostrar_altas:
 
     # Filtramos los clústeres que tienen más de 1 socio
     cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
+
+    # Gráfico de treemap para visualizar los clústeres potenciales
+    st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
 
     # Gráfico de treemap para visualizar los clústeres potenciales
     st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
