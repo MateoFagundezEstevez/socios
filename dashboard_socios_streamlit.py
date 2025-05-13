@@ -8,40 +8,19 @@ from datetime import datetime
 def cargar_datos():
     df = pd.read_csv("Cuentas (1).csv")
     df.columns = df.columns.str.strip().str.replace('"', '')
-
-    # Procesar fechas y calcular antigüedad
-    if 'Fecha Creación Empresa' in df.columns:
-        df['Fecha Creación Empresa'] = pd.to_datetime(df['Fecha Creación Empresa'], errors='coerce')
-        df['Año Alta'] = df['Fecha Creación Empresa'].dt.year
-
-
-    if df['Fecha Creación Empresa'].dropna().empty and 'Fecha de Creación' in df.columns:
-        df['Fecha de Creación'] = pd.to_datetime(df['Fecha de Creación'], errors='coerce')
-        df['Antiguedad'] = datetime.today().year - df['Fecha de Creación'].dt.year
-    else:
-        df['Antiguedad'] = datetime.today().year - df['Fecha Creación Empresa'].dt.year
-
-    # Calcular antigüedad en meses
-    df['Antiguedad en Meses'] = (datetime.today().year - df['Fecha Creación Empresa'].dt.year) * 12 + (datetime.today().month - df['Fecha Creación Empresa'].dt.month)
-
-    # Antigüedad detallada (años y meses)
-    df['Antiguedad Detallada'] = (df['Antiguedad en Meses'] // 12).astype(str) + ' años y ' + (df['Antiguedad en Meses'] % 12).astype(str) + ' meses'
-
-    # Clasificación de la antigüedad en categorías
-    bins = [0, 1, 5, float('inf')]
-    labels = ['Nuevo', 'Medio', 'Veterano']
-    df['Antiguedad Categoria'] = pd.cut(df['Antiguedad'], bins=bins, labels=labels, right=False)
-
+    df['Fecha Creación Empresa'] = pd.to_datetime(df['Fecha Creación Empresa'], errors='coerce')
+    df['Año Alta'] = df['Fecha Creación Empresa'].dt.year
     return df
 
-# Cargar datos
 df = cargar_datos()
 
 # Filtros en la barra lateral
 st.sidebar.header("Filtros")
 
+# Filtro de estado
 estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
 
+# Expansor para los estados de los socios
 with st.sidebar.expander("Ver información sobre Estados de los Socios"):
     st.markdown("""
     **Estados de los Socios**:
@@ -52,12 +31,16 @@ with st.sidebar.expander("Ver información sobre Estados de los Socios"):
     - **LIC**: Socio con licencia temporal (por ejemplo, suspendido).
     - **CAMRUT**: Socio con cambio de RUT (posible reingreso o reorganización).
     - **EMSUS**: Enviada solicitud de suspensión.
-    - **CANJ**: Socio en canje de servicios.
+    - **CANJ**: Socio en canje de servicios (trueque o acuerdo no monetario).
     """)
 
+# Filtro de rubros
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
+
+# Filtro de tipo de socio
 tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo de socio"].dropna().unique())
 
+# Filtro por Región / Localidad
 if 'Región / Localidad' in df.columns:
     regiones = st.sidebar.multiselect("Región / Localidad", df["Región / Localidad"].dropna().unique())
 else:
@@ -74,21 +57,21 @@ if tipos:
 if regiones:
     filtro = filtro[filtro["Región / Localidad"].isin(regiones)]
 
-# Título y bienvenida
+# Título
 st.title("Análisis Integral de Socios - Cámara de Comercio")
 st.markdown("Este dashboard permite visualizar información clave para decisiones sobre fidelización, reactivación y estrategias institucionales.")
 
-# Conteo de socios activos
+# Conteo de socios activos (divertido)
 socios_activos = filtro[filtro["Estado"] == "VIG"].shape[0]
 st.markdown(f"🎉 ¡Tenemos **{socios_activos}** socios activos! 🎉")
+st.markdown("Estos socios representan el motor de nuestra comunidad, ¡y estamos aquí para ayudarlos a crecer y prosperar!")
 
-# Explicación tipos de socios
+# Explicación de tipos de socios
 st.markdown("""
 **Tipos de Socios**:
-- **TS01**: Socios Activos
-- **TS02**: Socios Adherentes
-- **TS03**: Socios Institucionales
-- **TS04**: Otro tipo de socio o categoría especial
+- **TS01**: Socios Activos (Empresas socias directas con todos los beneficios).
+- **TS02**: Socios Adherentes (Participan parcialmente de servicios).
+- **TS03**: Socios Institucionales (Vinculación con instituciones o entes públicos).
 """)
 
 # Fidelización
@@ -108,36 +91,14 @@ if not filtro.empty:
 else:
     st.write("No hay socios que coincidan con los filtros seleccionados.")
 
-# Reactivación de inactivos
+# Mostrar análisis de inactivos solo si el usuario lo solicita
 mostrar_inactivos = st.sidebar.checkbox("Mostrar análisis de socios inactivos")
+
 if mostrar_inactivos:
     st.header("Reactivación de Socios Inactivos")
     inactivos = df[df["Estado"] == "SOLIC-BAJA"]
     st.write(f"Total de socios inactivos: {len(inactivos)}")
     st.plotly_chart(px.histogram(inactivos, x="Rubro", color="Tipo de socio", title="Rubros más afectados"))
-
-# Altas por año
-mostrar_altas = st.sidebar.checkbox("Mostrar altas por año")
-if mostrar_altas:
-    st.header("Altas por Año (2023–2026)")
-
-    # Asegurarse de que la columna está en formato datetime
-    df['Fecha Creación Empresa'] = pd.to_datetime(df['Fecha Creación Empresa'], errors='coerce')
-
-    # Extraer el año
-    df['Año Alta'] = df['Fecha Creación Empresa'].dt.year
-
-    # Filtrar años relevantes
-    años_objetivo = [2023, 2024, 2025, 2026]
-    altas_filtradas = df[df['Año Alta'].isin(años_objetivo)]
-
-    # Contar por año
-    conteo_altas = altas_filtradas['Año Alta'].value_counts().sort_index()
-
-    if not conteo_altas.empty:
-        st.bar_chart(conteo_altas)
-    else:
-        st.info("No hay altas registradas para los años seleccionados.")
 
 # Totales
 st.header("Cantidad de socios y rubros según filtros seleccionados")
@@ -145,8 +106,41 @@ rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
 
-# Clústeres
-cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
-cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_index(name="Cantidad")
-cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
-st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
+# **Altas por Año**
+st.header("Altas por Año")
+años_disponibles = df['Año Alta'].dropna().unique()
+años_disponibles = sorted(años_disponibles)
+
+# Mostrar gráfico de barras con las altas por año
+conteo_altas = df['Año Alta'].value_counts().sort_index()
+st.subheader("Altas por Año")
+st.bar_chart(conteo_altas)
+
+# Filtro de Año
+años_seleccionados = st.sidebar.multiselect("Seleccionar Año(s)", años_disponibles, default=años_disponibles)
+
+# Mostrar empresas creadas por año seleccionado
+if años_seleccionados:
+    st.header(f"Empresas creadas en {', '.join(map(str, años_seleccionados))}")
+    empresas_por_año = df[df['Año Alta'].isin(años_seleccionados)]
+    empresas_mostradas = empresas_por_año[['Nombre Empresa', 'Fecha Creación Empresa', 'Rubro', 'Estado', 'Tipo de socio']]
+
+    # Mostrar tabla de empresas
+    st.write(empresas_mostradas)
+else:
+    st.write("Seleccione un año para ver las empresas creadas en ese año.")
+
+# Mostrar análisis de altas por año solo si el usuario lo solicita
+mostrar_altas = st.sidebar.checkbox("Mostrar altas por año")
+if mostrar_altas:
+    # Clústeres por Rubro y Región/Localidad
+    cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
+
+    # Agrupamos por Rubro y Región/Localidad y contamos la cantidad de socios
+    cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_index(name="Cantidad")
+
+    # Filtramos los clústeres que tienen más de 1 socio
+    cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
+
+    # Gráfico de treemap para visualizar los clústeres potenciales
+    st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
