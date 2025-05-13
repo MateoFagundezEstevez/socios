@@ -42,13 +42,11 @@ estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), defau
 with st.sidebar.expander("Ver información sobre Estados de los Socios"):
     st.markdown("""
     **Estados de los Socios**:
-    - **VIG**: Socio activo y vigente.
+    - **VIGENTE**: Socio activo y vigente.
     - **SOLIC-BAJA**: En proceso de baja o ya inactivo.
-    - **HON**: Socio honorario.
-    - **LIC**: Socio con licencia temporal (por ejemplo, suspendido).
-    - **CAMRUT**: Socio con cambio de RUT (posible reingreso o reorganización).
-    - **EMSUS**: Enviada solicitud de suspensión.
-    - **CANJ**: Socio en canje de servicios (trueque o acuerdo no monetario).
+    - **HONORARIOS**: Socio honorario.
+    - **SUSPENDIDOS**: Enviada solicitud de suspensión.
+    - **CANJE**: Socio en canje de servicios (trueque o acuerdo no monetario).
     """)
 
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
