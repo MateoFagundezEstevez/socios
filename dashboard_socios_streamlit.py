@@ -121,9 +121,6 @@ rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
     
-# Mostrar análisis de altas por año solo si el usuario lo solicita
-mostrar_altas = st.sidebar.checkbox("Mostrar altas por año")
-
 # Clústeres por Rubro y Región/Localidad
 cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
 
