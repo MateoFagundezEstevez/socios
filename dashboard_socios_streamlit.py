@@ -37,7 +37,9 @@ df = cargar_datos()
 # Filtros en la barra lateral
 st.sidebar.header("Filtros")
 
+# Filtro por Estado (con el valor predeterminado "VIG")
 estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
+
 # Expansor para los estados de los socios
 with st.sidebar.expander("Ver información sobre Estados de los Socios"):
     st.markdown("""
@@ -63,8 +65,17 @@ else:
 
 # Aplicar filtros
 filtro = df.copy()
-if estados:
-    filtro = filtro[filtro["Estado"].isin(estados)]
+
+# Filtrar por Estado y Tipo de Socio
+if "PROSP" in estados:
+    # Mostrar solo los "Prospectos" cuando el estado sea "PROSP"
+    filtro = filtro[filtro["Estado"] == "PROSP"]
+    if tipos:
+        filtro = filtro[filtro["Tipo de socio"].isin(tipos)]
+else:
+    if estados:
+        filtro = filtro[filtro["Estado"].isin(estados)]
+
 if rubros:
     filtro = filtro[filtro["Rubro"].isin(rubros)]
 if tipos:
@@ -133,3 +144,4 @@ cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
 
 # Gráfico de treemap para visualizar los clústeres potenciales
 st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
+
