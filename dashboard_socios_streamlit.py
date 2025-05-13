@@ -37,13 +37,18 @@ df = cargar_datos()
 # Filtros en la barra lateral
 st.sidebar.header("Filtros")
 
-estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique())
+# Filtro para "Estado"
+estados_disponibles = df["Estado"].dropna().unique()
+# Establecer valores predeterminados solo si existen en los datos
+estados_predeterminados = [estado for estado in ["VIG", "PROSP"] if estado in estados_disponibles]
+estados = st.sidebar.multiselect("Estado", estados_disponibles, default=estados_predeterminados)
+
 # Expansor para los estados de los socios
 with st.sidebar.expander("Ver información sobre Estados de los Socios"):
-    st.markdown("""
-    **Estados de los Socios**:
+    st.markdown("""**Estados de los Socios**:
     - **VIG**: Socio activo y vigente.
     - **SOLIC-BAJA**: En proceso de baja o ya inactivo.
+    - **PROSP**: Prospecto, aún no es socio formal.
     - **HON**: Socio honorario.
     - **LIC**: Socio con licencia temporal (por ejemplo, suspendido).
     - **CAMRUT**: Socio con cambio de RUT (posible reingreso o reorganización).
@@ -51,6 +56,7 @@ with st.sidebar.expander("Ver información sobre Estados de los Socios"):
     - **CANJ**: Socio en canje de servicios (trueque o acuerdo no monetario).
     """)
 
+# Filtros por rubro y tipo de socio
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
 tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo de socio"].dropna().unique())
 
@@ -59,13 +65,6 @@ if 'Región / Localidad' in df.columns:
     regiones = st.sidebar.multiselect("Región / Localidad", df["Región / Localidad"].dropna().unique())
 else:
     regiones = []
-
-# Filtro de Prospectos basado en el Tipo de Socio
-# Si "PROSP" es una opción en Tipo de socio, añadirlo al filtro de Prospectos
-if 'PROSP' in df["Tipo de socio"].unique():
-    prospectos = st.sidebar.checkbox("Mostrar Prospectos", value=True)
-else:
-    prospectos = False
 
 # Aplicar filtros
 filtro = df.copy()
@@ -78,9 +77,6 @@ if tipos:
 if regiones:
     filtro = filtro[filtro["Región / Localidad"].isin(regiones)]
 
-if prospectos:
-    filtro = filtro[filtro["Tipo de socio"] == "PROSP"]
-
 # Título
 st.title("Análisis Integral de Socios - Cámara de Comercio")
 st.markdown("Este dashboard permite visualizar información clave para decisiones sobre fidelización, reactivación y estrategias institucionales.")
@@ -91,12 +87,11 @@ st.markdown(f"🎉 ¡Tenemos **{socios_activos}** socios activos! 🎉")
 st.markdown("Estos socios representan el motor de nuestra comunidad, ¡y estamos aquí para ayudarlos a crecer y prosperar!")
 
 # Explicación de tipos de socios
-st.markdown("""
-**Tipos de Socios**:
+st.markdown("""**Tipos de Socios**:
 - **TS01**: Socios Activos (Empresas socias directas con todos los beneficios).
 - **TS02**: Socios Adherentes (Participan parcialmente de servicios).
 - **TS03**: Socios Institucionales (Vinculación con instituciones o entes públicos).
-- **TS04**: Socios Honorarios (Empresas con un rol institucional o relacionado al desarrollo social).
+- **TS04**: Prospectos (Empresas que están en proceso de convertirse en socios).
 """)
 
 # Fidelización
@@ -130,7 +125,7 @@ st.header("Cantidad de socios y rubros según filtros seleccionados")
 rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
-
+    
 # Clústeres por Rubro y Región/Localidad
 cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
 
