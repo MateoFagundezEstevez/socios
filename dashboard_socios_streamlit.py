@@ -12,19 +12,17 @@ def cargar_datos():
     # Procesar fechas y calcular antigüedad
     if 'Fecha Creación Empresa' in df.columns:
         df['Fecha Creación Empresa'] = pd.to_datetime(df['Fecha Creación Empresa'], errors='coerce')
-    
-    if df['Fecha Creación Empresa'].dropna().empty and 'Fecha de Creación' in df.columns:
-        df['Fecha de Creación'] = pd.to_datetime(df['Fecha de Creación'], errors='coerce')
-        df['Antiguedad'] = datetime.today().year - df['Fecha de Creación'].dt.year
-    else:
         df['Antiguedad'] = datetime.today().year - df['Fecha Creación Empresa'].dt.year
+    else:
+        df['Fecha Creación Empresa'] = pd.NaT
+        df['Antiguedad'] = None
 
     # Calcular antigüedad en meses
     df['Antiguedad en Meses'] = (
         (datetime.today().year - df['Fecha Creación Empresa'].dt.year) * 12 +
         (datetime.today().month - df['Fecha Creación Empresa'].dt.month)
     )
-    
+
     # Antigüedad detallada (años y meses)
     df['Antiguedad Detallada'] = (
         (df['Antiguedad en Meses'] // 12).astype(str) + ' años y ' +
@@ -50,7 +48,6 @@ filtro = df.copy()
 # --- Filtro de Estado ---
 estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
 
-# Expansor para info de estados
 with st.sidebar.expander("Ver información sobre Estados de los Socios"):
     st.markdown("""
     **Estados de los Socios**:
@@ -82,20 +79,23 @@ if 'Fecha Creación Empresa' in df.columns:
     if not fechas_validas.empty:
         min_fecha = fechas_validas.min().date()
         max_fecha = fechas_validas.max().date()
+    else:
+        # Si no hay fechas válidas, usar hoy como rango
+        min_fecha = max_fecha = datetime.today().date()
 
-        rango_fechas = st.sidebar.date_input(
-            "Fecha de Creación (rango)",
-            value=(min_fecha, max_fecha),
-            min_value=min_fecha,
-            max_value=max_fecha
-        )
+    rango_fechas = st.sidebar.date_input(
+        "Fecha de Creación (rango)",
+        value=(min_fecha, max_fecha),
+        min_value=min_fecha,
+        max_value=max_fecha
+    )
 
-        if isinstance(rango_fechas, tuple) and len(rango_fechas) == 2:
-            inicio, fin = rango_fechas
-            filtro = filtro[
-                (filtro['Fecha Creación Empresa'] >= pd.to_datetime(inicio)) &
-                (filtro['Fecha Creación Empresa'] <= pd.to_datetime(fin))
-            ]
+    if isinstance(rango_fechas, tuple) and len(rango_fechas) == 2:
+        inicio, fin = rango_fechas
+        filtro = filtro[
+            (filtro['Fecha Creación Empresa'] >= pd.to_datetime(inicio)) &
+            (filtro['Fecha Creación Empresa'] <= pd.to_datetime(fin))
+        ]
 
 # --- Aplicar filtros adicionales ---
 if estados:
@@ -118,11 +118,9 @@ if prospecto_filter:
 st.title("Análisis Integral de Socios - Cámara de Comercio")
 st.markdown("Este dashboard permite visualizar información clave para decisiones sobre fidelización, reactivación y estrategias institucionales.")
 
-# Conteo de socios activos
 socios_activos = filtro[filtro["Estado"] == "VIG"].shape[0]
 st.markdown(f"🎉 ¡Tenemos **{socios_activos}** socios activos! 🎉")
 
-# Fidelización
 st.header("Fidelización de Socios Activos")
 st.subheader("Distribución por Rubro")
 st.plotly_chart(px.histogram(filtro, x="Rubro", color="Tipo", barmode="group", height=400))
@@ -131,7 +129,6 @@ st.subheader("Antigüedad de los Socios")
 if 'Antiguedad Categoria' in filtro.columns:
     st.plotly_chart(px.histogram(filtro, x="Antiguedad Categoria", height=400))
 
-# Detalle de socios filtrados
 st.subheader("Detalle de Socios Filtrados")
 if not filtro.empty:
     columnas_mostrar = [col for col in filtro.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
@@ -139,7 +136,6 @@ if not filtro.empty:
 else:
     st.write("No hay socios que coincidan con los filtros seleccionados.")
 
-# Mostrar análisis de inactivos solo si se selecciona
 mostrar_inactivos = st.sidebar.checkbox("Mostrar análisis de socios inactivos")
 if mostrar_inactivos:
     st.header("Reactivación de Socios Inactivos")
@@ -147,13 +143,11 @@ if mostrar_inactivos:
     st.write(f"Total de socios inactivos: {len(inactivos)}")
     st.plotly_chart(px.histogram(inactivos, x="Rubro", color="Tipo", title="Rubros más afectados"))
 
-# Totales
 st.header("Cantidad de socios y rubros según filtros seleccionados")
 rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
 
-# Clústeres
 cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
 cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_index(name="Cantidad")
 cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
