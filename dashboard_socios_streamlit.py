@@ -20,10 +20,16 @@ def cargar_datos():
         df['Antiguedad'] = datetime.today().year - df['Fecha Creación Empresa'].dt.year
 
     # Calcular antigüedad en meses
-    df['Antiguedad en Meses'] = (datetime.today().year - df['Fecha Creación Empresa'].dt.year) * 12 + (datetime.today().month - df['Fecha Creación Empresa'].dt.month)
+    df['Antiguedad en Meses'] = (
+        (datetime.today().year - df['Fecha Creación Empresa'].dt.year) * 12 +
+        (datetime.today().month - df['Fecha Creación Empresa'].dt.month)
+    )
     
     # Antigüedad detallada (años y meses)
-    df['Antiguedad Detallada'] = (df['Antiguedad en Meses'] // 12).astype(str) + ' años y ' + (df['Antiguedad en Meses'] % 12).astype(str) + ' meses'
+    df['Antiguedad Detallada'] = (
+        (df['Antiguedad en Meses'] // 12).astype(str) + ' años y ' +
+        (df['Antiguedad en Meses'] % 12).astype(str) + ' meses'
+    )
 
     # Clasificación de la antigüedad en categorías
     bins = [0, 1, 5, float('inf')]
@@ -42,18 +48,18 @@ st.sidebar.header("Filtros")
 # --- Filtro por fecha de creación ---
 st.sidebar.subheader("Filtro por Fecha de Creación")
 
-if "Fecha Creación Empresa" in df.columns:
-    col_fecha = "Fecha Creación Empresa"
-elif "Fecha de Creación" in df.columns:
-    col_fecha = "Fecha de Creación"
-else:
-    col_fecha = None
+# Usamos siempre esta columna
+col_fecha = "Fecha Creación Empresa"
+
+# Convertir fechas válidas
+df[col_fecha] = pd.to_datetime(df[col_fecha], errors="coerce")
+fechas_validas = df[col_fecha].dropna()
 
 filtro = df.copy()
 
-if col_fecha:
-    min_fecha = df[col_fecha].min()
-    max_fecha = df[col_fecha].max()
+if not fechas_validas.empty:
+    min_fecha = fechas_validas.min().date()
+    max_fecha = fechas_validas.max().date()
 
     rango_fechas = st.sidebar.date_input(
         "Selecciona rango de fechas",
@@ -64,7 +70,12 @@ if col_fecha:
 
     if isinstance(rango_fechas, tuple) and len(rango_fechas) == 2:
         inicio, fin = rango_fechas
-        filtro = filtro[(filtro[col_fecha] >= pd.to_datetime(inicio)) & (filtro[col_fecha] <= pd.to_datetime(fin))]
+        filtro = filtro[
+            (filtro[col_fecha] >= pd.to_datetime(inicio)) &
+            (filtro[col_fecha] <= pd.to_datetime(fin))
+        ]
+else:
+    st.sidebar.warning("⚠️ No hay fechas válidas en la columna 'Fecha Creación Empresa'.")
 
 # --- Filtro de Estado ---
 estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
@@ -92,7 +103,7 @@ if 'Región / Localidad' in df.columns:
 else:
     regiones = []
 
-# Aplicar filtros
+# Aplicar filtros adicionales
 if estados:
     filtro = filtro[filtro["Estado"].isin(estados)]
 if rubros:
@@ -104,7 +115,6 @@ if regiones:
 
 # Filtro para buscar "Prospecto" en "Tipo"
 prospecto_filter = st.sidebar.checkbox("Ver Prospectos", value=False)
-
 if prospecto_filter:
     filtro = filtro[filtro["Tipo"].str.contains("Prospecto", case=False, na=False)]
 
@@ -138,7 +148,6 @@ else:
 
 # Mostrar análisis de inactivos solo si el usuario lo solicita
 mostrar_inactivos = st.sidebar.checkbox("Mostrar análisis de socios inactivos")
-
 if mostrar_inactivos:
     st.header("Reactivación de Socios Inactivos")
     inactivos = df[df["Estado"] == "SOLIC-BAJA"]
@@ -150,7 +159,7 @@ st.header("Cantidad de socios y rubros según filtros seleccionados")
 rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
-    
+
 # Clústeres por Rubro y Región/Localidad
 cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
 cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_index(name="Cantidad")
