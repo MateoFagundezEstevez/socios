@@ -71,6 +71,12 @@ if 'Año-Mes Creación' in df.columns:
     if meses_seleccionados:
         filtro = filtro[filtro['Año-Mes Creación'].isin(meses_seleccionados)]
 
+# --- Filtro de Socios Nuevos (desde Mayo 2025) ---
+ver_socios_nuevos = st.sidebar.checkbox("Ver socios nuevos", value=False)
+if ver_socios_nuevos:
+    fecha_corte = pd.to_datetime("2025-05-01")
+    filtro = filtro[filtro["Fecha Creación Empresa"] >= fecha_corte]
+
 # --- Filtro por Antigüedad (categorías) ---
 if 'Antiguedad Categoria' in df.columns:
     antiguedad_opciones = st.sidebar.multiselect(
@@ -80,7 +86,7 @@ if 'Antiguedad Categoria' in df.columns:
     if antiguedad_opciones:
         filtro = filtro[filtro["Antiguedad Categoria"].isin(antiguedad_opciones)]
 
-# --- Alternativa: Filtro por Antigüedad (años numéricos con slider) ---
+# --- Filtro por Antigüedad (años numéricos con slider) ---
 if 'Antiguedad' in df.columns:
     antiguedad_min = int(df['Antiguedad'].min()) if df['Antiguedad'].notna().any() else 0
     antiguedad_max = int(df['Antiguedad'].max()) if df['Antiguedad'].notna().any() else 0
@@ -136,4 +142,3 @@ cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_i
 cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
 
 st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
-
