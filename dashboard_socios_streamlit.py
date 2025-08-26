@@ -15,9 +15,11 @@ def cargar_datos():
     if 'Fecha Creación Empresa' in df.columns:
         df['Fecha Creación Empresa'] = pd.to_datetime(df['Fecha Creación Empresa'], errors='coerce')
         df['Antiguedad'] = datetime.today().year - df['Fecha Creación Empresa'].dt.year
+        df['Año-Mes Creación'] = df['Fecha Creación Empresa'].dt.to_period("M").astype(str)
     else:
         df['Fecha Creación Empresa'] = pd.NaT
         df['Antiguedad'] = None
+        df['Año-Mes Creación'] = None
 
     # Calcular antigüedad en meses
     df['Antiguedad en Meses'] = (
@@ -36,10 +38,6 @@ def cargar_datos():
     labels = ['Nuevo (0-1 año)', 'Medio (1-5 años)', 'Veterano (5+ años)']
     df['Antiguedad Categoria'] = pd.cut(df['Antiguedad'], bins=bins, labels=labels, right=False)
 
-    # Crear columna Año-Mes para filtro
-    if 'Fecha Creación Empresa' in df.columns:
-        df['Año-Mes Creación'] = df['Fecha Creación Empresa'].dt.to_period("M").astype(str)
-
     return df
 
 df = cargar_datos()
@@ -49,7 +47,6 @@ df = cargar_datos()
 # =========================
 st.sidebar.header("Filtros")
 
-# Inicializamos filtro general
 filtro = df.copy()
 
 # --- Checkbox: Ver socios nuevos desde mayo 2025 ---
@@ -80,25 +77,25 @@ if 'Región / Localidad' in df.columns:
         filtro = filtro[filtro["Región / Localidad"].isin(regiones)]
 
 # --- Filtro por Fecha de Creación (Año-Mes) ---
-if 'Año-Mes Creación' in df.columns:
-    meses_disponibles = sorted(df['Año-Mes Creación'].dropna().unique())
+if 'Año-Mes Creación' in filtro.columns:
+    meses_disponibles = sorted(filtro['Año-Mes Creación'].dropna().unique())
     meses_seleccionados = st.sidebar.multiselect("Fecha de Creación (Mes/Año)", meses_disponibles)
     if meses_seleccionados:
         filtro = filtro[filtro['Año-Mes Creación'].isin(meses_seleccionados)]
 
 # --- Filtro por Antigüedad (categorías) ---
-if 'Antiguedad Categoria' in df.columns:
+if 'Antiguedad Categoria' in filtro.columns:
     antiguedad_opciones = st.sidebar.multiselect(
         "Antigüedad de los socios",
-        df["Antiguedad Categoria"].dropna().unique()
+        filtro["Antiguedad Categoria"].dropna().unique()
     )
     if antiguedad_opciones:
         filtro = filtro[filtro["Antiguedad Categoria"].isin(antiguedad_opciones)]
 
 # --- Filtro por Antigüedad (años numéricos con slider) ---
-if 'Antiguedad' in df.columns:
-    antiguedad_min = int(df['Antiguedad'].min()) if df['Antiguedad'].notna().any() else 0
-    antiguedad_max = int(df['Antiguedad'].max()) if df['Antiguedad'].notna().any() else 0
+if 'Antiguedad' in filtro.columns and filtro['Antiguedad'].notna().any():
+    antiguedad_min = int(filtro['Antiguedad'].min())
+    antiguedad_max = int(filtro['Antiguedad'].max())
     rango_antiguedad = st.sidebar.slider(
         "Filtrar por antigüedad (años)",
         min_value=antiguedad_min,
@@ -151,4 +148,3 @@ cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_i
 cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
 
 st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
-
