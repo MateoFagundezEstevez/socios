@@ -49,33 +49,39 @@ st.sidebar.header("Filtros")
 
 filtro = df.copy()
 
+# --- Filtro de Socios Nuevos ---
+ver_socios_nuevos = st.sidebar.checkbox("Ver socios nuevos (desde mayo 2025)")
+if ver_socios_nuevos:
+    fecha_corte = pd.to_datetime("2025-05-01")
+    filtro = filtro[filtro["Fecha Creación Empresa"] >= fecha_corte]
+
 # --- Filtro de Estado ---
 estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
+if estados:
+    filtro = filtro[filtro["Estado"].isin(estados)]
 
 # --- Filtro de Rubro ---
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
+if rubros:
+    filtro = filtro[filtro["Rubro"].isin(rubros)]
 
 # --- Filtro de Tipo ---
 tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo"].dropna().unique())
+if tipos:
+    filtro = filtro[filtro["Tipo"].isin(tipos)]
 
 # --- Filtro por Región / Localidad ---
 if 'Región / Localidad' in df.columns:
     regiones = st.sidebar.multiselect("Región / Localidad", df["Región / Localidad"].dropna().unique())
-else:
-    regiones = []
+    if regiones:
+        filtro = filtro[filtro["Región / Localidad"].isin(regiones)]
 
 # --- Filtro por Fecha de Creación (Año-Mes) ---
 if 'Año-Mes Creación' in df.columns:
     meses_disponibles = sorted(df['Año-Mes Creación'].dropna().unique())
-    meses_seleccionados = st.sidebar.multiselect("Fecha de Creación (por Mes/Año)", meses_disponibles)
+    meses_seleccionados = st.sidebar.multiselect("Fecha de Creación (Mes/Año)", meses_disponibles)
     if meses_seleccionados:
         filtro = filtro[filtro['Año-Mes Creación'].isin(meses_seleccionados)]
-
-# --- Filtro de Socios Nuevos (desde Mayo 2025) ---
-ver_socios_nuevos = st.sidebar.checkbox("Ver socios nuevos", value=False)
-if ver_socios_nuevos:
-    fecha_corte = pd.to_datetime("2025-05-01")
-    filtro = filtro[filtro["Fecha Creación Empresa"] >= fecha_corte]
 
 # --- Filtro por Antigüedad (categorías) ---
 if 'Antiguedad Categoria' in df.columns:
@@ -142,3 +148,4 @@ cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_i
 cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
 
 st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
+
