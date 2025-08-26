@@ -34,10 +34,39 @@ def cargar_datos():
 
 df = cargar_datos()
 
+# =========================
 # Filtros en la barra lateral
+# =========================
 st.sidebar.header("Filtros")
 
-# Filtro de Estado con opciones seleccionables
+# --- Filtro por fecha de creación ---
+st.sidebar.subheader("Filtro por Fecha de Creación")
+
+if "Fecha Creación Empresa" in df.columns:
+    col_fecha = "Fecha Creación Empresa"
+elif "Fecha de Creación" in df.columns:
+    col_fecha = "Fecha de Creación"
+else:
+    col_fecha = None
+
+filtro = df.copy()
+
+if col_fecha:
+    min_fecha = df[col_fecha].min()
+    max_fecha = df[col_fecha].max()
+
+    rango_fechas = st.sidebar.date_input(
+        "Selecciona rango de fechas",
+        value=(min_fecha, max_fecha),
+        min_value=min_fecha,
+        max_value=max_fecha
+    )
+
+    if isinstance(rango_fechas, tuple) and len(rango_fechas) == 2:
+        inicio, fin = rango_fechas
+        filtro = filtro[(filtro[col_fecha] >= pd.to_datetime(inicio)) & (filtro[col_fecha] <= pd.to_datetime(fin))]
+
+# --- Filtro de Estado ---
 estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
 
 # Expansor para los estados de los socios
@@ -64,8 +93,6 @@ else:
     regiones = []
 
 # Aplicar filtros
-filtro = df.copy()
-
 if estados:
     filtro = filtro[filtro["Estado"].isin(estados)]
 if rubros:
@@ -78,15 +105,16 @@ if regiones:
 # Filtro para buscar "Prospecto" en "Tipo"
 prospecto_filter = st.sidebar.checkbox("Ver Prospectos", value=False)
 
-# Filtrar los prospectos si se seleccionó la opción
 if prospecto_filter:
     filtro = filtro[filtro["Tipo"].str.contains("Prospecto", case=False, na=False)]
 
-# Título
+# =========================
+# Visualización principal
+# =========================
 st.title("Análisis Integral de Socios - Cámara de Comercio")
 st.markdown("Este dashboard permite visualizar información clave para decisiones sobre fidelización, reactivación y estrategias institucionales.")
 
-# Conteo de socios activos (divertido)
+# Conteo de socios activos
 socios_activos = filtro[filtro["Estado"] == "VIG"].shape[0]
 st.markdown(f"🎉 ¡Tenemos **{socios_activos}** socios activos! 🎉")
 st.markdown("Estos socios representan el motor de nuestra comunidad, ¡y estamos aquí para ayudarlos a crecer y prosperar!")
@@ -125,12 +153,7 @@ st.dataframe(rubro_counts.head(10))
     
 # Clústeres por Rubro y Región/Localidad
 cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
-
-# Agrupamos por Rubro y Región/Localidad y contamos la cantidad de socios
 cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_index(name="Cantidad")
-
-# Filtramos los clústeres que tienen más de 1 socio
 cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
 
-# Gráfico de treemap para visualizar los clústeres potenciales
 st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
