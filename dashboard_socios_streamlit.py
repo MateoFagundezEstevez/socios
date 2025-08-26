@@ -45,65 +45,59 @@ df = cargar_datos()
 # =========================
 st.sidebar.header("Filtros")
 
-# --- Filtro por fecha de creación ---
-st.sidebar.subheader("Filtro por Fecha de Creación")
-
-# Usamos siempre esta columna
-col_fecha = "Fecha Creación Empresa"
-
-# Convertir fechas válidas
-df[col_fecha] = pd.to_datetime(df[col_fecha], errors="coerce")
-fechas_validas = df[col_fecha].dropna()
-
 filtro = df.copy()
-
-if not fechas_validas.empty:
-    min_fecha = fechas_validas.min().date()
-    max_fecha = fechas_validas.max().date()
-
-    rango_fechas = st.sidebar.date_input(
-        "Selecciona rango de fechas",
-        value=(min_fecha, max_fecha),
-        min_value=min_fecha,
-        max_value=max_fecha
-    )
-
-    if isinstance(rango_fechas, tuple) and len(rango_fechas) == 2:
-        inicio, fin = rango_fechas
-        filtro = filtro[
-            (filtro[col_fecha] >= pd.to_datetime(inicio)) &
-            (filtro[col_fecha] <= pd.to_datetime(fin))
-        ]
-else:
-    st.sidebar.warning("⚠️ No hay fechas válidas en la columna 'Fecha Creación Empresa'.")
 
 # --- Filtro de Estado ---
 estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
 
-# Expansor para los estados de los socios
+# Expansor para info de estados
 with st.sidebar.expander("Ver información sobre Estados de los Socios"):
     st.markdown("""
     **Estados de los Socios**:
     - **VIG**: Socio activo y vigente.
     - **SOLIC-BAJA**: En proceso de baja o ya inactivo.
-    - **BAJ**: Baja. El socio ha completado el proceso de baja y ya no está asociado.
-    - **HON**: Socio honorario. El socio disfruta de algunos beneficios sin ser un socio activo con todas las obligaciones.
-    - **LIC**: Socio licenciado. El socio tiene licencia temporal para no participar activamente.
-    - **CAMRUT**: Socio en cambio de rut. El socio está realizando cambios administrativos en su registro.
-    - **EMSUS**: Socio en suspensión. El socio está suspendido temporalmente.
-    - **CANJ**: Socio en canje de servicios. Participa en un intercambio de servicios, sin transacciones monetarias.
+    - **BAJ**: Baja definitiva.
+    - **HON**: Socio honorario.
+    - **LIC**: Socio licenciado temporalmente.
+    - **CAMRUT**: Socio en cambio de RUT.
+    - **EMSUS**: Socio suspendido temporalmente.
+    - **CANJ**: Socio en canje de servicios.
     """)
 
+# --- Filtro de Rubro ---
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
+
+# --- Filtro de Tipo ---
 tipos = st.sidebar.multiselect("Tipo de socio", df["Tipo"].dropna().unique())
 
-# Filtro por Región / Localidad
+# --- Filtro por Región / Localidad ---
 if 'Región / Localidad' in df.columns:
     regiones = st.sidebar.multiselect("Región / Localidad", df["Región / Localidad"].dropna().unique())
 else:
     regiones = []
 
-# Aplicar filtros adicionales
+# --- Filtro por Fecha de Creación ---
+if 'Fecha Creación Empresa' in df.columns:
+    fechas_validas = df['Fecha Creación Empresa'].dropna()
+    if not fechas_validas.empty:
+        min_fecha = fechas_validas.min().date()
+        max_fecha = fechas_validas.max().date()
+
+        rango_fechas = st.sidebar.date_input(
+            "Fecha de Creación (rango)",
+            value=(min_fecha, max_fecha),
+            min_value=min_fecha,
+            max_value=max_fecha
+        )
+
+        if isinstance(rango_fechas, tuple) and len(rango_fechas) == 2:
+            inicio, fin = rango_fechas
+            filtro = filtro[
+                (filtro['Fecha Creación Empresa'] >= pd.to_datetime(inicio)) &
+                (filtro['Fecha Creación Empresa'] <= pd.to_datetime(fin))
+            ]
+
+# --- Aplicar filtros adicionales ---
 if estados:
     filtro = filtro[filtro["Estado"].isin(estados)]
 if rubros:
@@ -113,7 +107,7 @@ if tipos:
 if regiones:
     filtro = filtro[filtro["Región / Localidad"].isin(regiones)]
 
-# Filtro para buscar "Prospecto" en "Tipo"
+# --- Checkbox para prospectos ---
 prospecto_filter = st.sidebar.checkbox("Ver Prospectos", value=False)
 if prospecto_filter:
     filtro = filtro[filtro["Tipo"].str.contains("Prospecto", case=False, na=False)]
@@ -127,7 +121,6 @@ st.markdown("Este dashboard permite visualizar información clave para decisione
 # Conteo de socios activos
 socios_activos = filtro[filtro["Estado"] == "VIG"].shape[0]
 st.markdown(f"🎉 ¡Tenemos **{socios_activos}** socios activos! 🎉")
-st.markdown("Estos socios representan el motor de nuestra comunidad, ¡y estamos aquí para ayudarlos a crecer y prosperar!")
 
 # Fidelización
 st.header("Fidelización de Socios Activos")
@@ -146,7 +139,7 @@ if not filtro.empty:
 else:
     st.write("No hay socios que coincidan con los filtros seleccionados.")
 
-# Mostrar análisis de inactivos solo si el usuario lo solicita
+# Mostrar análisis de inactivos solo si se selecciona
 mostrar_inactivos = st.sidebar.checkbox("Mostrar análisis de socios inactivos")
 if mostrar_inactivos:
     st.header("Reactivación de Socios Inactivos")
@@ -160,7 +153,7 @@ rubro_counts = filtro["Rubro"].value_counts().reset_index()
 rubro_counts.columns = ["Rubro", "Cantidad"]
 st.dataframe(rubro_counts.head(10))
 
-# Clústeres por Rubro y Región/Localidad
+# Clústeres
 cluster_df = df[~df["Rubro"].isna() & ~df["Región / Localidad"].isna()].copy()
 cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_index(name="Cantidad")
 cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
