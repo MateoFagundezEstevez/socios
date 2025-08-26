@@ -95,25 +95,18 @@ st.markdown(f"🎉 ¡Tenemos **{socios_activos}** socios activos! 🎉")
 st.markdown("Estos socios representan el motor de nuestra comunidad, ¡y estamos aquí para ayudarlos a crecer y prosperar!")
 
 # ---------------------------
-# Socios recientes (últimos 6 meses)
+# Socios nuevos
 # ---------------------------
-st.header("🚀 Socios Recientes (últimos 6 meses)")
-hoy = pd.Timestamp.today()
-seis_meses_atras = hoy - pd.DateOffset(months=6)
+st.header("🚀 Socios Nuevos (<1 año)")
+nuevos = filtro[filtro['Antiguedad Categoria'] == 'Nuevo']
 
-if 'Fecha Creación Empresa' in filtro.columns:
-    recientes = filtro[filtro['Fecha Creación Empresa'] >= seis_meses_atras]
-elif 'Fecha de Creación' in filtro.columns:
-    recientes = filtro[filtro['Fecha de Creación'] >= seis_meses_atras]
-else:
-    recientes = pd.DataFrame()
+st.markdown(f"Tenemos **{nuevos.shape[0]}** socios nuevos según la antigüedad.")
 
-if not recientes.empty:
-    st.markdown(f"En los últimos 6 meses se incorporaron **{recientes.shape[0]}** nuevos socios.")
-    columnas_mostrar = [col for col in recientes.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
-    st.dataframe(recientes[columnas_mostrar].drop_duplicates().reset_index(drop=True))
+if not nuevos.empty:
+    columnas_mostrar = [col for col in nuevos.columns if any(k in col.lower() for k in ["nombre", "rubro", "mail", "email", "tel", "contacto"])]
+    st.dataframe(nuevos[columnas_mostrar].drop_duplicates().reset_index(drop=True))
 else:
-    st.write("No se registran nuevos socios en los últimos 6 meses según los filtros aplicados.")
+    st.write("No hay socios nuevos según los filtros aplicados.")
 
 # ---------------------------
 # Fidelización
