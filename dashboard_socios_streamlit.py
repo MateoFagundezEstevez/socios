@@ -23,15 +23,15 @@ def cargar_datos():
         (datetime.today().month - df['Fecha Creación Empresa'].dt.month)
     )
 
-    # Antigüedad detallada (años y meses)
+    # Antigüedad detallada
     df['Antiguedad Detallada'] = (
         (df['Antiguedad en Meses'] // 12).astype(str) + ' años y ' +
         (df['Antiguedad en Meses'] % 12).astype(str) + ' meses'
     )
 
-    # Clasificación de la antigüedad en categorías
+    # Categorías de antigüedad
     bins = [0, 1, 5, float('inf')]
-    labels = ['Nuevo', 'Medio', 'Veterano']
+    labels = ['Nuevo (0-1 año)', 'Medio (1-5 años)', 'Veterano (5+ años)']
     df['Antiguedad Categoria'] = pd.cut(df['Antiguedad'], bins=bins, labels=labels, right=False)
 
     return df
@@ -47,19 +47,6 @@ filtro = df.copy()
 
 # --- Filtro de Estado ---
 estados = st.sidebar.multiselect("Estado", df["Estado"].dropna().unique(), default=["VIG"])
-
-with st.sidebar.expander("Ver información sobre Estados de los Socios"):
-    st.markdown("""
-    **Estados de los Socios**:
-    - **VIG**: Socio activo y vigente.
-    - **SOLIC-BAJA**: En proceso de baja o ya inactivo.
-    - **BAJ**: Baja definitiva.
-    - **HON**: Socio honorario.
-    - **LIC**: Socio licenciado temporalmente.
-    - **CAMRUT**: Socio en cambio de RUT.
-    - **EMSUS**: Socio suspendido temporalmente.
-    - **CANJ**: Socio en canje de servicios.
-    """)
 
 # --- Filtro de Rubro ---
 rubros = st.sidebar.multiselect("Rubro", df["Rubro"].dropna().unique())
@@ -80,7 +67,6 @@ if 'Fecha Creación Empresa' in df.columns:
         min_fecha = fechas_validas.min().date()
         max_fecha = fechas_validas.max().date()
     else:
-        # Si no hay fechas válidas, usar hoy como rango
         min_fecha = max_fecha = datetime.today().date()
 
     rango_fechas = st.sidebar.date_input(
@@ -97,15 +83,29 @@ if 'Fecha Creación Empresa' in df.columns:
             (filtro['Fecha Creación Empresa'] <= pd.to_datetime(fin))
         ]
 
-# --- Aplicar filtros adicionales ---
-if estados:
-    filtro = filtro[filtro["Estado"].isin(estados)]
-if rubros:
-    filtro = filtro[filtro["Rubro"].isin(rubros)]
-if tipos:
-    filtro = filtro[filtro["Tipo"].isin(tipos)]
-if regiones:
-    filtro = filtro[filtro["Región / Localidad"].isin(regiones)]
+# --- Filtro por Antigüedad (categorías) ---
+if 'Antiguedad Categoria' in df.columns:
+    antiguedad_opciones = st.sidebar.multiselect(
+        "Antigüedad de los socios",
+        df["Antiguedad Categoria"].dropna().unique()
+    )
+    if antiguedad_opciones:
+        filtro = filtro[filtro["Antiguedad Categoria"].isin(antiguedad_opciones)]
+
+# --- Alternativa: Filtro por Antigüedad (años numéricos con slider) ---
+if 'Antiguedad' in df.columns:
+    antiguedad_min = int(df['Antiguedad'].min()) if df['Antiguedad'].notna().any() else 0
+    antiguedad_max = int(df['Antiguedad'].max()) if df['Antiguedad'].notna().any() else 0
+    rango_antiguedad = st.sidebar.slider(
+        "Filtrar por antigüedad (años)",
+        min_value=antiguedad_min,
+        max_value=antiguedad_max,
+        value=(antiguedad_min, antiguedad_max)
+    )
+    filtro = filtro[
+        (filtro['Antiguedad'] >= rango_antiguedad[0]) &
+        (filtro['Antiguedad'] <= rango_antiguedad[1])
+    ]
 
 # --- Checkbox para prospectos ---
 prospecto_filter = st.sidebar.checkbox("Ver Prospectos", value=False)
