@@ -34,6 +34,10 @@ def cargar_datos():
     labels = ['Nuevo (0-1 año)', 'Medio (1-5 años)', 'Veterano (5+ años)']
     df['Antiguedad Categoria'] = pd.cut(df['Antiguedad'], bins=bins, labels=labels, right=False)
 
+    # Crear columna Año-Mes para filtro
+    if 'Fecha Creación Empresa' in df.columns:
+        df['Año-Mes Creación'] = df['Fecha Creación Empresa'].dt.to_period("M").astype(str)
+
     return df
 
 df = cargar_datos()
@@ -60,28 +64,12 @@ if 'Región / Localidad' in df.columns:
 else:
     regiones = []
 
-# --- Filtro por Fecha de Creación ---
-if 'Fecha Creación Empresa' in df.columns:
-    fechas_validas = df['Fecha Creación Empresa'].dropna()
-    if not fechas_validas.empty:
-        min_fecha = fechas_validas.min().date()
-        max_fecha = fechas_validas.max().date()
-    else:
-        min_fecha = max_fecha = datetime.today().date()
-
-    rango_fechas = st.sidebar.date_input(
-        "Fecha de Creación (rango)",
-        value=(min_fecha, max_fecha),
-        min_value=min_fecha,
-        max_value=max_fecha
-    )
-
-    if isinstance(rango_fechas, tuple) and len(rango_fechas) == 2:
-        inicio, fin = rango_fechas
-        filtro = filtro[
-            (filtro['Fecha Creación Empresa'] >= pd.to_datetime(inicio)) &
-            (filtro['Fecha Creación Empresa'] <= pd.to_datetime(fin))
-        ]
+# --- Filtro por Fecha de Creación (Año-Mes) ---
+if 'Año-Mes Creación' in df.columns:
+    meses_disponibles = sorted(df['Año-Mes Creación'].dropna().unique())
+    meses_seleccionados = st.sidebar.multiselect("Fecha de Creación (por Mes/Año)", meses_disponibles)
+    if meses_seleccionados:
+        filtro = filtro[filtro['Año-Mes Creación'].isin(meses_seleccionados)]
 
 # --- Filtro por Antigüedad (categorías) ---
 if 'Antiguedad Categoria' in df.columns:
@@ -106,11 +94,6 @@ if 'Antiguedad' in df.columns:
         (filtro['Antiguedad'] >= rango_antiguedad[0]) &
         (filtro['Antiguedad'] <= rango_antiguedad[1])
     ]
-
-# --- Checkbox para prospectos ---
-prospecto_filter = st.sidebar.checkbox("Ver Prospectos", value=False)
-if prospecto_filter:
-    filtro = filtro[filtro["Tipo"].str.contains("Prospecto", case=False, na=False)]
 
 # =========================
 # Visualización principal
@@ -153,3 +136,4 @@ cluster_df = cluster_df.groupby(["Rubro", "Región / Localidad"]).size().reset_i
 cluster_df = cluster_df[cluster_df["Cantidad"] > 1]
 
 st.plotly_chart(px.treemap(cluster_df, path=['Rubro', 'Región / Localidad'], values='Cantidad', title="Clústeres Potenciales por Rubro y Región/Localidad"))
+
