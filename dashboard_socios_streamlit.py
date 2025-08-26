@@ -3,7 +3,9 @@ import pandas as pd
 import plotly.express as px
 from datetime import datetime
 
+# =========================
 # Cargar datos
+# =========================
 @st.cache_data
 def cargar_datos():
     df = pd.read_csv("Cuentas (1).csv")
@@ -43,13 +45,14 @@ def cargar_datos():
 df = cargar_datos()
 
 # =========================
-# Filtros en la barra lateral
+# Barra lateral: filtros
 # =========================
 st.sidebar.header("Filtros")
 
+# Inicializamos filtro general
 filtro = df.copy()
 
-# --- Filtro de Socios Nuevos ---
+# --- Checkbox: Ver socios nuevos desde mayo 2025 ---
 ver_socios_nuevos = st.sidebar.checkbox("Ver socios nuevos (desde mayo 2025)")
 if ver_socios_nuevos:
     fecha_corte = pd.to_datetime("2025-05-01")
